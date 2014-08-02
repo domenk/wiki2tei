@@ -1,7 +1,5 @@
 <?php
 
-### POGLEJ SI DOMText::isWhitespaceInElementContent
-
 require('settings.inc.php');
 require('modules/common.inc.php');
 require('modules/converter.inc.php');
@@ -407,13 +405,12 @@ $file = '<TEI xml:lang="sl">
 				<edition>1.0</edition>
 			</editionStmt>
 			<publicationStmt>
-				<idno xml:id="METADATA-idno">wikivir.999</idno>
-				<pubPlace>
-					<ref target="http://nl.ijs.si/imp/wikivir/">http://nl.ijs.si/imp/wikivir/</ref>
-				</pubPlace>
-				<availability>
-					<p>Besedilo je na razpolago pod dovoljenjem <ref target="http://creativecommons.org/licenses/by-sa/3.0/">Creative Commons Priznanje avtorstva-Deljenje pod enakimi pogoji 3.0.</ref></p>
-				</availability>
+				<distributor>???</distributor>
+				<idno xml:id="METADATA-idno"></idno>
+        <availability>
+          <p xml:lang="en">This work is licensed under a <ref target="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</ref>.</p>
+          <p xml:lang="sl">Besedilo je na razpolago pod dovoljenjem <ref target="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Priznanje avtorstva-Deljenje pod enakimi pogoji 4.0 mednarodna licenca.</ref></p>
+        </availability>
 				<date xml:id="METADATA-dategenerated1">9999-99-99</date>
 			</publicationStmt>
 			<sourceDesc>
@@ -454,7 +451,7 @@ $file = '<TEI xml:lang="sl">
 		<revisionDesc>
 			<change>
 				<date xml:id="METADATA-dategenerated2"></date>
-				<name>wiki2tei</name>: pretvorba v TEI P5.
+				<name>wiki2tei</name>: conversion to TEI P5.
 			</change>
 		</revisionDesc>
 	</teiHeader>
