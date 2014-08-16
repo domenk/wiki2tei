@@ -4,10 +4,9 @@ $settings = array();
 
 $settings['timezone'] = 'Europe/Ljubljana';
 $settings['facsimile-url-prefix'] = 'http://nl.ijs.si/imp/wikivir/facs/';
-$settings['wiki-name'] = 'Wikivir';
 $settings['wiki-domain'] = 'sl.wikisource.org';
 $settings['wiki-url-prefix'] = 'http://'.$settings['wiki-domain'].'/wiki/';
-$settings['relaxng-scheme'] = 'tei_imp.rng';
+$settings['relaxng-scheme'] = 'tei_imp.rng'; // set to false to skip validation
 
 $settings['text-data-modules'] = array(
 	'FromForm',
@@ -17,6 +16,7 @@ $settings['text-data-modules'] = array(
 
 $settings['redirect-magicwords'] = array('redirect', 'preusmeritev');
 
+$settings['download-xml'] = true;
 // $settings['save-xml'] = false; // uncomment only if you want to override modules' default setting
 // $settings['save-images'] = false; // uncomment only if you want to override modules' default setting
 $settings['wikitext-folder'] = 'originals';

@@ -25,6 +25,8 @@ common_logNotice('Converting '.$selectedWork->getPrefix().' at '.date('r'), fals
 // get missing metadata from wikitext
 require('modules/getMetadataFromWikitext.inc.php');
 
+$siteinfo = common_fetchWikiSiteinfo($settings['wiki-domain']);
+
 
 Converter::addReplacePair('/{{\s*[Nn]ejasno\s*}}/sU', '<gap reason="illegible" />');
 Converter::addReplacePair('/{{\s*[Nn]ejasno\s*\|([^\|]*)}}/sU', '<unclear>$1</unclear>');
@@ -386,11 +388,11 @@ $file = preg_replace_callback('/___TEI_FACSIMILE_PAGE_(\d+)___/', function($matc
 
 
 // it should read: <TEI xmlns="http://www.tei-c.org/ns/1.0" xml:lang="sl"> (this is solved below)
-$file = '<TEI xml:lang="sl">
+$file = '<TEI xml:lang="'.$siteinfo['language'].'">
 	<teiHeader>
 		<fileDesc>
 			<titleStmt>
-				<title xml:id="METADATA-title1">Avtor: Naslov dela. (9999) [Wikivir]</title>
+				<title xml:id="METADATA-title1">Author: Title of work. (9999) [Wikisource]</title>
 				<principal>
 					<name>
 						<ref target="http://nl.ijs.si/et/">Tomaž Erjavec (IJS)</ref>
@@ -398,7 +400,7 @@ $file = '<TEI xml:lang="sl">
 				</principal>
 				<respStmt>
 					<name>wiki2tei</name>
-					<resp>Pretvorba zapisa Wiki/DjVu v TEI.</resp>
+					<resp>Conversion of Wiki/DjVu format to TEI.</resp>
 				</respStmt>
 			</titleStmt>
 			<editionStmt>
@@ -415,17 +417,18 @@ $file = '<TEI xml:lang="sl">
 			</publicationStmt>
 			<sourceDesc>
 				<bibl>
-					<title xml:lang="sl" type="orig" xml:id="METADATA-title2orig">Naslov dela</title>
-					<title xml:lang="sl" type="reg" xml:id="METADATA-title2norm">Naslov dela, normaliziran</title>
-					<author xml:id="METADATA-author">Avtor</author>
+					<title xml:lang="'.$siteinfo['language'].'" type="orig" xml:id="METADATA-title2orig">Title of work</title>
+					<title xml:lang="'.$siteinfo['language'].'" type="reg" xml:id="METADATA-title2norm">Title of work, normalised</title>
+					<author xml:id="METADATA-author">Author</author>
 					<respStmt>
-						<resp xml:lang="sl">Prevajalec</resp><resp xml:lang="en">Translator</resp>
+						<resp xml:lang="sl">Prevajalec</resp>
+						<resp xml:lang="en">Translator</resp>
 						<name xml:id="METADATA-translator"></name>
 					</respStmt>
 					<date xml:id="METADATA-date">9999</date>
 					<publisher xml:id="METADATA-publisher"></publisher>
 					<pubPlace>
-						'.$settings['wiki-name'].': <ref xml:id="METADATA-ref" target="http://sl.wikisource.org/wiki/Kazalo:Dokument.djvu">http://sl.wikisource.org/wiki/Kazalo:Dokument.djvu</ref>
+						'.$siteinfo['sitename'].': <ref xml:id="METADATA-ref" target="http://en.wikisource.org/wiki/Text.djvu">http://en.wikisource.org/wiki/Text.djvu</ref>
 					</pubPlace>
 				</bibl>
 			</sourceDesc>
@@ -436,7 +439,7 @@ $file = '<TEI xml:lang="sl">
 				<p>Projekt <ref target="http://sl.wikisource.org/wiki/Wikivir:Slovenska_leposlovna_klasika">Wikivir</ref>: <q>Slovenska leposlovna klasika</q>.</p>
 			</projectDesc>
 			<editorialDecl>
-				<p xml:id="METADATA-note">Opomba</p>
+				<p xml:id="METADATA-note">Note</p>
 			</editorialDecl>
 			<tagsDecl>
 				<namespace name="http://www.tei-c.org/ns/1.0"></namespace>
@@ -458,10 +461,10 @@ $file = '<TEI xml:lang="sl">
 	<facsimile>
 	</facsimile>
 	<text>
-		<front xml:lang="sl">
+		<front xml:lang="'.$siteinfo['language'].'">
 			<titlePage>
-				<titlePart xml:lang="sl" type="reg" xml:id="METADATA-title3norm">Naslov dela</titlePart>
-				<docAuthor xml:id="METADATA-author2">Avtor</docAuthor>
+				<titlePart xml:lang="'.$siteinfo['language'].'" type="reg" xml:id="METADATA-title3norm">Title of work</titlePart>
+				<docAuthor xml:id="METADATA-author2">Author</docAuthor>
 				<docDate xml:id="METADATA-date2">9999</docDate>
 			</titlePage>
 			<docImprint>
@@ -884,22 +887,22 @@ while($PDOMs->length > 0) {
 // basic data about the text
 $selectedWorkYears = $selectedWork->getYears();
 $metadataManual = array(
-	'title1' => $selectedWork->getFirstAuthor().': '.$selectedWork->getNormalisedTitle().'. ('.(count($selectedWorkYears)>1?intval($selectedWorkYears[0]).'–'.intval($selectedWorkYears[count($selectedWorkYears)-1]):(!empty($selectedWorkYears[0])?$selectedWorkYears[0]:'?')).') ['.$settings['wiki-name'].']',
+	'title1' => ($selectedWork->hasAuthors()?$selectedWork->getFirstAuthor():'?').': '.($selectedWork->hasTitle()?$selectedWork->getNormalisedTitle():'?').'. ('.($selectedWork->hasYears()?(count($selectedWorkYears)>1?intval($selectedWorkYears[0]).'–'.intval($selectedWorkYears[count($selectedWorkYears)-1]):$selectedWorkYears[0]):'?').') ['.$siteinfo['sitename'].']',
 	'idno' => $selectedWork->getSignature(),
-	'title2orig' => $selectedWork->getTitle(),
-	'title2norm' => $selectedWork->getNormalisedTitle(),
-	'author' => $selectedWork->getAuthors(),
+	'title2orig' => ($selectedWork->hasTitle()?$selectedWork->getTitle():'?'),
+	'title2norm' => ($selectedWork->hasTitle()?$selectedWork->getNormalisedTitle():'?'),
+	'author' => ($selectedWork->hasAuthors()?$selectedWork->getAuthors():array('?')),
 	'translator' => $selectedWork->getTranslator(),
-	'date' => $selectedWork->getYears(),
+	'date' => ($selectedWork->hasYears()?$selectedWork->getYears():array('?')),
 	'publisher' => $selectedWork->getPublisher(),
 	'note' => $selectedWork->getNote(),
 	'ref' => $settings['wiki-url-prefix'].$selectedWork->getLink(), // also @target
 	'dategenerated1' => date('Y-m-d'),
 	'dategenerated2' => date('Y-m-d'),
 
-	'title3norm' => $selectedWork->getNormalisedTitle(),
-	'author2' => $selectedWork->getAuthors(),
-	'date2' => implode(', ', $selectedWork->getYears()),
+	'title3norm' => ($selectedWork->hasTitle()?$selectedWork->getNormalisedTitle():'?'),
+	'author2' => ($selectedWork->hasAuthors()?$selectedWork->getAuthors():array('?')),
+	'date2' => implode(', ', ($selectedWork->hasYears()?$selectedWork->getYears():array('?'))),
 	'signature' => 'Signatura '.$selectedWork->getSignature(),
 );
 
@@ -966,7 +969,7 @@ if(file_exists($facsDir)) {
 
 		// <desc xml:lang="sl">Faksimile oreharjev_blaz, stran 1</desc>
 		$descDOM = $DOM->createElement('desc');
-		$descDOM->setAttribute('xml:lang', 'sl');
+		$descDOM->setAttribute('xml:lang', 'sl'); // $siteinfo['language']
 		$facsSurfacePage = intval($facsFilenameData[0]);
 		$descDOM->appendChild($DOM->createTextNode('Faksimile '.$deloNaslovCleanSC.', '.($facsSurfacePage==0?'naslovnica':'stran '.$facsSurfacePage)));
 		$surfaceDOM->appendChild($descDOM);
@@ -1147,7 +1150,7 @@ foreach($elementsCount as $elementName => $elementCount) {
 // set document language
 $documentLanguage = language_getDocumentLanguage($file);
 $textDOM = $DOM->getElementsByTagName('text')->item(0);
-$textDOM->setAttribute('xml:lang', $documentLanguage);
+$textDOM->setAttribute('xml:lang', $documentLanguage); // $siteinfo['language']
 $textDOM->getElementsByTagName('body')->item(0)->setAttribute('xml:lang', $documentLanguage);
 
 // taxonomy
@@ -1177,6 +1180,9 @@ if($settings['save-xml']) {
 	common_saveFile($settings['xml-folder'].'/'.$selectedWork->getSignature().'.xml', $file);
 }
 
+if(!empty($settings['download-xml'])) {
+	header('Content-Disposition: attachment; filename="'.($selectedWork->hasTitle()?common_replaceSpecialCharacters($selectedWork->getNormalisedTitle()):'tei').'.xml"');
+}
 
 header('Content-Type: text/xml');
 print $file;

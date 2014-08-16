@@ -13,9 +13,9 @@ if(!empty($settings['notices-filename'])) {
 	set_error_handler('manual_error_handler');
 }
 
-function common_fetchContentFromWiki($query) {
+function common_fetchContentFromWiki($query, $domain=null) {
 	global $settings;
-	return file_get_contents('http://'.$settings['wiki-domain'].'/w/'.$query, null, stream_context_create(array('http' => array('header'=>'User-Agent: User-Agent: Mozilla/4.0 (compatible; MSIE 8.0; WIKI2TEI)'."\r\n"))));
+	return file_get_contents('http://'.(is_null($domain)?$settings['wiki-domain']:$domain).'/w/'.$query, null, stream_context_create(array('http' => array('header' => 'User-Agent: User-Agent: Mozilla/4.0 (compatible; MSIE 8.0; WIKI2TEI)'."\r\n"))));
 }
 
 function common_fetchPageFromWiki($pagetitle) {
@@ -36,6 +36,20 @@ function common_fetchPageFromWiki($pagetitle) {
 	}
 
 	return $file;
+}
+
+define('WIKI_FALLBACK_SITENAME', 'Wikisource');
+define('WIKI_FALLBACK_LANGUAGE', 'en');
+function common_fetchWikiSiteinfo($domain=null) {
+	$siteinfoJSON = common_fetchContentFromWiki('api.php?action=query&meta=siteinfo&siprop=general&format=json', $domain);
+	if($siteinfoJSON === false) {return WIKI_GENERAL_SITENAME;}
+
+	$siteinfo = json_decode($siteinfoJSON, true);
+
+	return array(
+		'sitename' => (!empty($siteinfo['query']['general']['sitename'])?$siteinfo['query']['general']['sitename']:WIKI_FALLBACK_SITENAME),
+		'language' => (!empty($siteinfo['query']['general']['lang'])?$siteinfo['query']['general']['lang']:WIKI_FALLBACK_LANGUAGE),
+	);
 }
 
 function common_replaceSpecialCharacters($string) {
