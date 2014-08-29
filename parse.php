@@ -4,7 +4,6 @@ require('settings.inc.php');
 require('modules/common.inc.php');
 require('modules/converter.inc.php');
 require('modules/work.inc.php');
-require('modules/Slovene.inc.php');
 
 common_logNotice('', false);
 
@@ -383,7 +382,7 @@ $file = str_replace('___TEI_PAGEBREAK_MANUAL___', '<pb />', $file);
 $file = preg_replace_callback('/___TEI_FACSIMILE_PAGE_(\d+)___/', function($matches) {return '<pb page="'.$matches[1].'" />';}, $file);
 
 
-// it should read: <TEI xmlns="http://www.tei-c.org/ns/1.0" xml:lang="sl"> (this is solved below)
+// it should read: <TEI xmlns="http://www.tei-c.org/ns/1.0" xml:lang="en"> (this is solved below)
 $file = '<TEI xml:lang="'.$siteinfo['language'].'">
 	<teiHeader>
 		<fileDesc>
@@ -958,7 +957,7 @@ if(file_exists($facsDir)) {
 
 		// <desc xml:lang="sl">Faksimile oreharjev_blaz, stran 1</desc>
 		$descDOM = $DOM->createElement('desc');
-		$descDOM->setAttribute('xml:lang', 'sl'); // $siteinfo['language']
+		$descDOM->setAttribute('xml:lang', $siteinfo['language']);
 		$facsSurfacePage = intval($facsFilenameData[0]);
 		$descDOM->appendChild($DOM->createTextNode('Faksimile '.$deloNaslovCleanSC.', '.($facsSurfacePage==0?'naslovnica':'stran '.$facsSurfacePage)));
 		$surfaceDOM->appendChild($descDOM);
@@ -1137,9 +1136,9 @@ foreach($elementsCount as $elementName => $elementCount) {
 }
 
 // set document language
-$documentLanguage = language_getDocumentLanguage($file);
+$documentLanguage = language_getDocumentLanguage($file, $siteinfo['language']);
 $textDOM = $DOM->getElementsByTagName('text')->item(0);
-$textDOM->setAttribute('xml:lang', $documentLanguage); // $siteinfo['language']
+$textDOM->setAttribute('xml:lang', $documentLanguage);
 $textDOM->getElementsByTagName('body')->item(0)->setAttribute('xml:lang', $documentLanguage);
 
 // taxonomy

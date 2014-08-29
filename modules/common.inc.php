@@ -134,3 +134,10 @@ function common_logNotice($message, $error=true, $append=true) {
 		print htmlspecialchars($message).'<br />'."\n";
 	}
 }
+
+function language_getDocumentLanguage($file, $currentLanguage) {
+	switch($currentLanguage) {
+		case 'sl': return ((substr_count($file, 'Ĺż')/mb_strlen($file))>0.01?'sl-bohoric':'sl'); break;
+		default: return $currentLanguage;
+	}
+}
