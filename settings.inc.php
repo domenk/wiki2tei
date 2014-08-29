@@ -54,18 +54,22 @@ $settings['taxonomy-categories'] = array(
 			array(
 				'id' => 'Text.manuscript',
 				'desc' => array('sl' => 'rokopis', 'en' => 'manuscript'),
+				'metadata-categories' => array(array('Rokopisi', false)),
 			),
 			array(
 				'id' => 'Text.book',
 				'desc' => array('sl' => 'knjiga', 'en' => 'book'),
+				'metadata-categories' => array(array('Knjige', true), array('Knjižne zbirke', true)),
 			),
 			array(
 				'id' => 'Text.magazine',
 				'desc' => array('sl' => 'revija', 'en' => 'magazine'),
+				'metadata-categories' => array(array('Revije', false)),
 			),
 			array(
 				'id' => 'Text.newspaper',
 				'desc' => array('sl' => 'časopis', 'en' => 'newspaper'),
+				'metadata-categories' => array(array('Časopisi', false), array('Podlistki', false)),
 			),
 		),
 	),
@@ -80,14 +84,17 @@ $settings['taxonomy-categories'] = array(
 					array(
 						'id' => 'Text.prose',
 						'desc' => array('sl' => 'proza', 'en' => 'prose'),
+						'metadata-categories' => array(array('Proza', false)),
 					),
 					array(
 						'id' => 'Text.drama',
 						'desc' => array('sl' => 'gledališka igra', 'en' => 'drama'),
+						'metadata-categories' => array(array('Igre', false)),
 					),
 					array(
 						'id' => 'Text.poetry',
 						'desc' => array('sl' => 'poezija', 'en' => 'poetry'),
+						'metadata-categories' => array(array('Pesmi', false)),
 					),
 				),
 			),
@@ -108,6 +115,7 @@ $settings['taxonomy-categories'] = array(
 			array(
 				'id' => 'Text.religious',
 				'desc' => array('sl' => 'nabožno', 'en' => 'religious'),
+				'metadata-categories' => array(array('Verstvo', false)),
 			),
 		),
 	),
@@ -118,10 +126,12 @@ $settings['taxonomy-categories'] = array(
 			array(
 				'id' => 'Text.original',
 				'desc' => array('sl' => 'izvirnik', 'en' => 'original'),
+				'metadata-categories' => array(array('Wikivir', true)),
 			),
 			array(
 				'id' => 'Text.translation',
 				'desc' => array('sl' => 'prevod', 'en' => 'translation'),
+				'metadata-categories' => array(array('Prevodi', false)),
 			),
 		),
 	),

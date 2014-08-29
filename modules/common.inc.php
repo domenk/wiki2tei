@@ -65,6 +65,45 @@ function common_fetchWikiSiteinfo() {
 	);
 }
 
+function common_fetchWikiPageCategoriesDeep($pagetitle, $knownCategories=array()) {
+	$categories = $knownCategories;
+
+	$pageCategoriesData = common_fetchContentFromWiki('api.php?action=query&prop=categories&titles='.urlencode($pagetitle).'&cllimit=100&clshow=!hidden&format=xml', true);
+	if($pageCategoriesData !== false) {
+		$DOM = new DOMDocument();
+		$DOM->loadXML($pageCategoriesData);
+		foreach($DOM->getElementsByTagName('cl') as $categoryDataDOM) {
+			$newCategory = $categoryDataDOM->getAttribute('title');
+			if(!in_array($newCategory, $categories)) {
+				$categories[] = $newCategory;
+				$newCategoryCategories = common_fetchWikiPageCategoriesDeep($newCategory, $categories);
+				$categories = array_unique(array_merge($categories, $newCategoryCategories));
+			}
+		}
+	}
+
+	return $categories;
+}
+
+function common_getTaxonomyByMetadataCategories($taxonomyCategories, $taxonomyParentName=false) {
+	$taxonomyByMetadataCategories = array();
+	foreach($taxonomyCategories as $taxonomyCategory) {
+		if(!empty($taxonomyCategory['categories'])) {
+			$newTaxonomyByMetadataCategories = common_getTaxonomyByMetadataCategories($taxonomyCategory['categories'], $taxonomyCategory['id']);
+			foreach($newTaxonomyByMetadataCategories as $newMetadataCategory => $newTaxonomyMetadataCategory) {
+				foreach($newTaxonomyMetadataCategory as $metadataCategory) {
+					$taxonomyByMetadataCategories[$newMetadataCategory][] = $metadataCategory;
+				}
+			}
+		} elseif(!empty($taxonomyCategory['metadata-categories'])) {
+			foreach($taxonomyCategory['metadata-categories'] as $metadataCategory) {
+				$taxonomyByMetadataCategories[$metadataCategory[0]][] = array($taxonomyCategory['id'], $metadataCategory[1], $taxonomyParentName);
+			}
+		}
+	}
+	return $taxonomyByMetadataCategories;
+}
+
 function common_replaceSpecialCharacters($string) {
 	$specialCharacters = array('\''=>'','č'=>'c','š'=>'s','ž'=>'z','ć'=>'c','đ'=>'d','¡'=>'!','¢'=>'c','£'=>'E','¥'=>'Y','§'=>'S','©'=>'C','ª'=>'a','®'=>'R','°'=>'o','±'=>'+-','²'=>'2','³'=>'3','µ'=>'u','¹'=>'1','º'=>'o','¿'=>'?','×'=>'x','ß'=>'ss','à'=>'a','á'=>'a','â'=>'a','ã'=>'a','ä'=>'a','å'=>'a','æ'=>'ae','ç'=>'c','è'=>'e','é'=>'e','ê'=>'e','ë'=>'e','ę'=>'e','ì'=>'i','í'=>'i','î'=>'i','ï'=>'i','ñ'=>'n','ò'=>'o','ó'=>'o','ô'=>'o','õ'=>'o','ö'=>'o','ø'=>'o','ù'=>'u','ú'=>'u','û'=>'u','ü'=>'u','ý'=>'y','þ'=>'th','ÿ'=>'y','α'=>'alfa','β'=>'beta','γ'=>'gama','δ'=>'delta','ε'=>'epsilon','ζ'=>'zeta','η'=>'eta','θ'=>'theta','ι'=>'jota','κ'=>'kapa','λ'=>'lambda','μ'=>'mi','ν'=>'ni','ξ'=>'ksi','ο'=>'omikron','π'=>'pi','ρ'=>'ro','σ'=>'sigma','ς'=>'sigma','τ'=>'tau','υ'=>'ipsilon','φ'=>'fi','χ'=>'hi','ψ'=>'psi','ω'=>'omega');
 

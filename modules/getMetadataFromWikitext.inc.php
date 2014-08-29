@@ -65,6 +65,35 @@ while(isset($templateNaslovMP['vir'])) {
 */
 
 
+// extract taxonomy from categories
+$workTaxonomyMetadata = array();
+
+$workCategories = common_fetchWikiPageCategoriesDeep(urldecode($selectedWork->getLink()));
+$taxonomyByMetadataCategories = common_getTaxonomyByMetadataCategories($settings['taxonomy-categories']);
+foreach($workCategories as $workCategory) {
+	$workCategoryName = explode(':', $workCategory, 2);
+	$workCategoryName = $workCategoryName[1];
+	if(isset($taxonomyByMetadataCategories[$workCategoryName])) {
+		$taxonomyMetadataCategories = $taxonomyByMetadataCategories[$workCategoryName];
+		foreach($taxonomyMetadataCategories as $taxonomyMetadataCategory) {
+			if(empty($taxonomyMetadataCategory[2])) {
+				$workTaxonomyMetadata[] = array($taxonomyMetadataCategory[0], false);
+			}
+			if(!isset($workTaxonomyMetadata[$taxonomyMetadataCategory[2]]) || !empty($workTaxonomyMetadata[$taxonomyMetadataCategory[2]][1])) { // [1] means: taxonomy can be overwritten
+				$workTaxonomyMetadata[$taxonomyMetadataCategory[2]] = array($taxonomyMetadataCategory[0], $taxonomyMetadataCategory[1]);
+			}
+		}
+	}
+}
+
+$workTaxonomy = array();
+foreach($workTaxonomyMetadata as $workTaxonomyMetadataEntry) {
+	$workTaxonomy[] = $workTaxonomyMetadataEntry[0];
+}
+$selectedWork->addCategories($workTaxonomy);
+
+
+
 if(!$selectedWork->hasTitle() && !empty($metadata['title'])) {
 	$selectedWork->setTitle(is_array($metadata['title'])?$metadata['title'][0]:$metadata['title']);
 }
