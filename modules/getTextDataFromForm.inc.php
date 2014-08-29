@@ -7,17 +7,20 @@ if(!empty($_POST['url'])) {
 	common_logNotice('Converting URL '.$url.' submitted by form', false);
 
 	$url = str_replace('https://', 'http://', $url);
-	if(substr($url, 0, strlen($settings['wiki-url-prefix'])) != $settings['wiki-url-prefix']) {
+	$wikiURLprefixPattern = '/^('.str_replace('\*', '[[:alpha:]\d-]*?', preg_quote($settings['wiki-url-prefix'], '/')).')(.*?)(#.*)?$/';
+	$urlMatchResult = preg_match($wikiURLprefixPattern, $url, $matches);
+	if(!$urlMatchResult) {
 		exit('URL address should start with "'.$settings['wiki-url-prefix'].'".');
 	}
-	$url = substr($url, strlen($settings['wiki-url-prefix']));
-	if(strstr($url, '#') !== false) {
-		$url = strstr($url, '#', true);
+	if(empty($matches[2])) {
+		exit('Empty page in URL.');
 	}
 
+	$settings['wiki-url-prefix'] = $matches[1];
+	$settings['wiki-domain'] = parse_url($url, PHP_URL_HOST);
 
 	$selectedWork = new Work(99999);
-	$selectedWork->setLink($url);
+	$selectedWork->setLink($matches[2]);
 
 
 	$metadataFormFields = array('id', 'title', 'title-normalised', 'author', 'year', 'publisher', 'translator');

@@ -25,7 +25,7 @@ common_logNotice('Converting '.$selectedWork->getPrefix().' at '.date('r'), fals
 // get missing metadata from wikitext
 require('modules/getMetadataFromWikitext.inc.php');
 
-$siteinfo = common_fetchWikiSiteinfo($settings['wiki-domain']);
+$siteinfo = common_fetchWikiSiteinfo();
 
 
 Converter::addReplacePair('/{{\s*[Nn]ejasno\s*}}/sU', '<gap reason="illegible" />');
@@ -199,8 +199,6 @@ $file = substr_replace($file, '', -7, 7); // remove </body>
 $file = str_replace(htmlspecialchars('<TEI_LG_BREAK />'), '<TEI_LG_BREAK />', $file);
 $file = str_replace(array('___TEI_INDENT_NEW______','___TEI_INDENT_END______'), array('<hi rend="indent">','</hi>'), $file);
 
-#file_put_contents("debug2.dat", $file);
-
 $file = preg_replace_callback('/=====(.*)=====/', function($matches) {return '<div4 xml:id="wv-'.Converter::generateHeadingID($matches[1]).'"><head>'.trim(str_replace('___TEI_LINE_BREAK______', "\n", $matches[1])).'</head>';}, $file);
 $file = preg_replace_callback('/====(.*)====/', function($matches) {return '<div3 xml:id="wv-'.Converter::generateHeadingID($matches[1]).'"><head>'.trim(str_replace('___TEI_LINE_BREAK______', "\n", $matches[1])).'</head>';}, $file);
 $file = preg_replace_callback('/===(.*)===/', function($matches) {return '<div2 xml:id="wv-'.Converter::generateHeadingID($matches[1]).'"><head>'.trim(str_replace('___TEI_LINE_BREAK______', "\n", $matches[1])).'</head>';}, $file);
@@ -283,8 +281,6 @@ $file = '___TEI_PARAGRAPH_NEW___'.trim($file).'___TEI_PARAGRAPH_END___';
 while(strstr($file, '___TEI_PARAGRAPH_NEW______TEI_PARAGRAPH_END___')) {$file = str_replace('___TEI_PARAGRAPH_NEW______TEI_PARAGRAPH_END___', '___TEI_PARAGRAPH_END___', $file);}
 while(strstr($file, '___TEI_PARAGRAPH_NEW______TEI_PARAGRAPH_NEW___')) {$file = str_replace('___TEI_PARAGRAPH_NEW______TEI_PARAGRAPH_NEW___', '___TEI_PARAGRAPH_NEW___', $file);}
 $file = str_replace("\n", '<lb />', $file);
-
-#file_put_contents("debug3.dat", $file);
 
 $paraOpened = array(false);
 $paraType = array(false);
@@ -392,14 +388,10 @@ $file = '<TEI xml:lang="'.$siteinfo['language'].'">
 	<teiHeader>
 		<fileDesc>
 			<titleStmt>
-				<title xml:id="METADATA-title1">Author: Title of work. (9999) [Wikisource]</title>
-				<principal>
-					<name>
-						<ref target="http://nl.ijs.si/et/">Tomaž Erjavec (IJS)</ref>
-					</name>
-				</principal>
+				<title wiki2tei-metadata="title-rich">Author: Title of work. (9999) [Wikisource]</title>
+				<principal></principal>
 				<respStmt>
-					<name>wiki2tei</name>
+					<name><ref target="http://github.com/domenk/wiki2tei">wiki2tei</ref></name>
 					<resp>Conversion of Wiki/DjVu format to TEI.</resp>
 				</respStmt>
 			</titleStmt>
@@ -408,38 +400,30 @@ $file = '<TEI xml:lang="'.$siteinfo['language'].'">
 			</editionStmt>
 			<publicationStmt>
 				<distributor>???</distributor>
-				<idno xml:id="METADATA-idno"></idno>
-        <availability>
-          <p xml:lang="en">This work is licensed under a <ref target="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</ref>.</p>
-          <p xml:lang="sl">Besedilo je na razpolago pod dovoljenjem <ref target="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Priznanje avtorstva-Deljenje pod enakimi pogoji 4.0 mednarodna licenca.</ref></p>
-        </availability>
-				<date xml:id="METADATA-dategenerated1">9999-99-99</date>
+				<idno wiki2tei-metadata="idno"></idno>
+        <availability></availability>
+				<date wiki2tei-metadata="dategenerated">9999-99-99</date>
 			</publicationStmt>
 			<sourceDesc>
 				<bibl>
-					<title xml:lang="'.$siteinfo['language'].'" type="orig" xml:id="METADATA-title2orig">Title of work</title>
-					<title xml:lang="'.$siteinfo['language'].'" type="reg" xml:id="METADATA-title2norm">Title of work, normalised</title>
-					<author xml:id="METADATA-author">Author</author>
+					<title xml:lang="'.$siteinfo['language'].'" type="orig" wiki2tei-metadata="title-original">Title of work</title>
+					<title xml:lang="'.$siteinfo['language'].'" type="reg" wiki2tei-metadata="title-normalised">Title of work, normalised</title>
+					<author wiki2tei-metadata="author">Author</author>
 					<respStmt>
-						<resp xml:lang="sl">Prevajalec</resp>
-						<resp xml:lang="en">Translator</resp>
-						<name xml:id="METADATA-translator"></name>
+						<name wiki2tei-metadata="translator"></name>
 					</respStmt>
-					<date xml:id="METADATA-date">9999</date>
-					<publisher xml:id="METADATA-publisher"></publisher>
+					<date wiki2tei-metadata="date">9999</date>
+					<publisher wiki2tei-metadata="publisher"></publisher>
 					<pubPlace>
-						'.$siteinfo['sitename'].': <ref xml:id="METADATA-ref" target="http://en.wikisource.org/wiki/Text.djvu">http://en.wikisource.org/wiki/Text.djvu</ref>
+						'.$siteinfo['sitename'].': <ref wiki2tei-metadata="ref" target="http://en.wikisource.org/wiki/Text.djvu">http://en.wikisource.org/wiki/Text.djvu</ref>
 					</pubPlace>
 				</bibl>
 			</sourceDesc>
 		</fileDesc>
 		<encodingDesc>
-			<projectDesc>
-				<p>Projekt <ref target="http://nl.ijs.si/imp/">IMP</ref>: <q>Jezikovni viri starejše slovenščine</q>.</p>
-				<p>Projekt <ref target="http://sl.wikisource.org/wiki/Wikivir:Slovenska_leposlovna_klasika">Wikivir</ref>: <q>Slovenska leposlovna klasika</q>.</p>
-			</projectDesc>
+			<projectDesc></projectDesc>
 			<editorialDecl>
-				<p xml:id="METADATA-note">Note</p>
+				<p wiki2tei-metadata="note">Note</p>
 			</editorialDecl>
 			<tagsDecl>
 				<namespace name="http://www.tei-c.org/ns/1.0"></namespace>
@@ -453,7 +437,7 @@ $file = '<TEI xml:lang="'.$siteinfo['language'].'">
 		</profileDesc>
 		<revisionDesc>
 			<change>
-				<date xml:id="METADATA-dategenerated2"></date>
+				<date wiki2tei-metadata="dategenerated"></date>
 				<name>wiki2tei</name>: conversion to TEI P5.
 			</change>
 		</revisionDesc>
@@ -463,13 +447,12 @@ $file = '<TEI xml:lang="'.$siteinfo['language'].'">
 	<text>
 		<front xml:lang="'.$siteinfo['language'].'">
 			<titlePage>
-				<titlePart xml:lang="'.$siteinfo['language'].'" type="reg" xml:id="METADATA-title3norm">Title of work</titlePart>
-				<docAuthor xml:id="METADATA-author2">Author</docAuthor>
-				<docDate xml:id="METADATA-date2">9999</docDate>
+				<titlePart xml:lang="'.$siteinfo['language'].'" type="reg" wiki2tei-metadata="title-normalised">Title of work</titlePart>
+				<docAuthor wiki2tei-metadata="author">Author</docAuthor>
+				<docDate wiki2tei-metadata="date-short">9999</docDate>
 			</titlePage>
 			<docImprint>
-				<pubPlace>Digitalna knjižnica <ref target="http://nl.ijs.si/imp/">IMP</ref></pubPlace>
-				<idno xml:id="METADATA-signature">Signatura WIKI00999-9999</idno>
+				<idno wiki2tei-metadata="idno">WIKI00999-9999</idno>
 			</docImprint>
 			<divGen type="teiHeader"/>
 			<divGen type="toc-pages"/>
@@ -480,9 +463,6 @@ $file = '<TEI xml:lang="'.$siteinfo['language'].'">
 		</body>
 	</text>
 </TEI>';
-
-#$file = str_replace('><', ">\r\n<", $file);
-#file_put_contents("debug4.dat", $file);
 
 $DOM = new DOMDocument();
 $DOM->loadXML($file);
@@ -661,6 +641,18 @@ do {
 	}
 } while($PDOMs->length);
 
+// organise @rend=indent (this block of code should be located before moving same attributes from hi to p)
+$DOMXPath = new DOMXPath($DOM);
+$PDOMs = $DOMXPath->query("//hi[contains(concat(' ', @rend, ' '), ' indent ')]");
+foreach($PDOMs as $PDOM) {
+	$pDOM = $DOM->createElement('p');
+	$pDOM->setAttribute('rend', $PDOM->getAttribute('rend'));
+	while($PDOM->childNodes->length) {
+		$pDOM->appendChild($PDOM->firstChild);
+	}
+	$PDOM->parentNode->replaceChild($pDOM, $PDOM);
+}
+
 // if all l have the same style, move style to lg; same for hi in p
 $DOMXPath = new DOMXPath($DOM);
 foreach(array('lg','p') as $targetElement) {
@@ -714,18 +706,6 @@ for($a = 0; $a < $PDOMs->length; $a++) {
 	}
 	$PDOMparent->removeChild($PDOM);
 	$a--;
-}
-
-// organise @rend=indent
-$DOMXPath = new DOMXPath($DOM);
-$PDOMs = $DOMXPath->query("//hi[contains(concat(' ', @rend, ' '), ' indent ')]");
-foreach($PDOMs as $PDOM) {
-	$pDOM = $DOM->createElement('p');
-	$pDOM->setAttribute('rend', $PDOM->getAttribute('rend'));
-	while($PDOM->childNodes->length) {
-		$pDOM->appendChild($PDOM->firstChild);
-	}
-	$PDOM->parentNode->replaceChild($pDOM, $PDOM);
 }
 
 // if p is child of hi, move it out
@@ -879,66 +859,75 @@ while($PDOMs->length > 0) {
 }
 
 
-##################### OD TUKAJ NAPREJ NEPREGLEDANO #####################
-
 
 /* metadata */
+
+// metadata from settings
+$DOMXPath = new DOMXPath($DOM);
+Converter::appendMetadata($DOM, $settings['metadata']['principal'], 'name', $DOMXPath->query('teiHeader/fileDesc/titleStmt/principal')->item(0));
+Converter::appendMetadata($DOM, $settings['metadata']['availability'], 'p', $DOMXPath->query('teiHeader/fileDesc/publicationStmt/availability')->item(0));
+Converter::appendMetadata($DOM, $settings['metadata']['translation-translator'], 'resp', $DOMXPath->query('teiHeader/fileDesc/sourceDesc/bibl/respStmt')->item(0));
+Converter::appendMetadata($DOM, $settings['metadata']['pubPlace'], 'pubPlace', $DOMXPath->query('text/front/docImprint')->item(0));
+Converter::appendXMLMetadata($DOM, $settings['metadata']['projectDesc'], $DOMXPath->query('teiHeader/encodingDesc/projectDesc')->item(0));
 
 // basic data about the text
 $selectedWorkYears = $selectedWork->getYears();
 $metadataManual = array(
-	'title1' => ($selectedWork->hasAuthors()?$selectedWork->getFirstAuthor():'?').': '.($selectedWork->hasTitle()?$selectedWork->getNormalisedTitle():'?').'. ('.($selectedWork->hasYears()?(count($selectedWorkYears)>1?intval($selectedWorkYears[0]).'–'.intval($selectedWorkYears[count($selectedWorkYears)-1]):$selectedWorkYears[0]):'?').') ['.$siteinfo['sitename'].']',
 	'idno' => $selectedWork->getSignature(),
-	'title2orig' => ($selectedWork->hasTitle()?$selectedWork->getTitle():'?'),
-	'title2norm' => ($selectedWork->hasTitle()?$selectedWork->getNormalisedTitle():'?'),
+	'title-rich' => ($selectedWork->hasAuthors()?$selectedWork->getFirstAuthor():'?').': '.($selectedWork->hasTitle()?$selectedWork->getNormalisedTitle():'?').'. ('.($selectedWork->hasYears()?(count($selectedWorkYears)>1?intval($selectedWorkYears[0]).'–'.intval($selectedWorkYears[count($selectedWorkYears)-1]):$selectedWorkYears[0]):'?').') ['.$siteinfo['sitename'].']',
+	'title-original' => ($selectedWork->hasTitle()?$selectedWork->getTitle():'?'),
+	'title-normalised' => ($selectedWork->hasTitle()?$selectedWork->getNormalisedTitle():'?'),
 	'author' => ($selectedWork->hasAuthors()?$selectedWork->getAuthors():array('?')),
 	'translator' => $selectedWork->getTranslator(),
 	'date' => ($selectedWork->hasYears()?$selectedWork->getYears():array('?')),
+	'date-short' => implode(', ', ($selectedWork->hasYears()?$selectedWork->getYears():array('?'))),
 	'publisher' => $selectedWork->getPublisher(),
 	'note' => $selectedWork->getNote(),
 	'ref' => $settings['wiki-url-prefix'].$selectedWork->getLink(), // also @target
-	'dategenerated1' => date('Y-m-d'),
-	'dategenerated2' => date('Y-m-d'),
-
-	'title3norm' => ($selectedWork->hasTitle()?$selectedWork->getNormalisedTitle():'?'),
-	'author2' => ($selectedWork->hasAuthors()?$selectedWork->getAuthors():array('?')),
-	'date2' => implode(', ', ($selectedWork->hasYears()?$selectedWork->getYears():array('?'))),
-	'signature' => 'Signatura '.$selectedWork->getSignature(),
+	'dategenerated' => date('Y-m-d'),
 );
 
-$DOM->getElementById('METADATA-ref')->setAttribute('target', $metadataManual['ref']);
-foreach($metadataManual as $id => $data) {
-	$metaDOM = $DOM->getElementById('METADATA-'.$id);
-	if(is_array($data)) {
-		foreach($data as $dataEntry) {
-			$newElDOM = $metaDOM->cloneNode();
-			$newElDOM->removeAttribute('xml:id');
-			$newElDOM->appendChild($DOM->createTextNode($dataEntry));
-			$metaDOM->parentNode->insertBefore($newElDOM, $metaDOM);
+$metadataElementsDOM = $DOMXPath->query('//*[@wiki2tei-metadata]');
+for($i = $metadataElementsDOM->length-1; $i >= 0; $i--) {
+	$metadataElementDOM = $metadataElementsDOM->item($i);
+	$metadataElementMetadata = $metadataElementDOM->getAttribute('wiki2tei-metadata');
+	$metadataElementDOM->removeAttribute('wiki2tei-metadata');
+
+	$metadataValue = $metadataManual[$metadataElementMetadata];
+
+	if(is_array($metadataValue)) {
+		foreach($metadataValue as $metadataValueEntry) {
+			$newElDOM = $metadataElementDOM->cloneNode();
+			$newElDOM->appendChild($DOM->createTextNode($metadataValueEntry));
+			$metadataElementDOM->parentNode->insertBefore($newElDOM, $metadataElementDOM);
 		}
-		$metaDOM->parentNode->removeChild($metaDOM);
+		$metadataElementDOM->parentNode->removeChild($metadataElementDOM);
 	} else {
-		if(($id == 'date') && strstr($data, '/')) {
-			$data = explode('/', $data);
-			$metaDOM->setAttribute('notBefore', (int) $data[0]);
-			$metaDOM->setAttribute('notAfter', (int) $data[1]);
-			$data = implode('-', $data);
+		if(($metadataElementMetadata == 'date') && strstr($metadataValue, '/')) {
+			$metadataValue = explode('/', $metadataValue);
+			$metadataElementDOM->setAttribute('notBefore', (int) $metadataValue[0]);
+			$metadataElementDOM->setAttribute('notAfter', (int) $metadataValue[1]);
+			$metadataValue = implode('-', $metadataValue);
 		}
-		if(in_array($id, array('publisher')) && is_null($data)) {
-			$metaDOM->parentNode->removeChild($metaDOM);
+		if($metadataElementMetadata == 'ref') {
+			$metadataElementDOM->setAttribute('target', $metadataValue);
+		}
+		if(in_array($metadataElementMetadata, array('publisher')) && is_null($metadataValue)) {
+			$metadataElementDOM->parentNode->removeChild($metadataElementDOM);
 			continue;
 		}
-		if(in_array($id, array('translator','note')) && is_null($data)) {
-			$metaDOM->parentNode->parentNode->removeChild($metaDOM->parentNode);
+		if(in_array($metadataElementMetadata, array('translator','note')) && is_null($metadataValue)) {
+			$metadataElementDOM->parentNode->parentNode->removeChild($metadataElementDOM->parentNode);
 			continue;
 		}
-		while($metaDOM->childNodes->length) {
-			$metaDOM->removeChild($metaDOM->firstChild);
+		while($metadataElementDOM->childNodes->length) {
+			$metadataElementDOM->removeChild($metadataElementDOM->firstChild);
 		}
-		$metaDOM->appendChild($DOM->createTextNode($data));
-		$metaDOM->removeAttribute('xml:id');
+		$metadataElementDOM->appendChild($DOM->createTextNode($metadataValue));
 	}
 }
+
+##################### OD TUKAJ NAPREJ NEPREGLEDANO #####################
 
 // pripravi <back>, v katerega gredo <surface>, ki nimajo svojega <pb>
 $divDOM = $DOM->getElementsByTagName('text')->item(0)->appendChild($DOM->createElement('back'))->appendChild($DOM->createElement('div'));

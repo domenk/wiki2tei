@@ -21,9 +21,8 @@ if(!empty($_GET['id'])) {
 
 		$selectedWorkFilename = $settings['wikitext-folder'].'/'.$selectedWork->getID().'.txt';
 		if(!file_exists($selectedWorkFilename) && !$selectedWork->isDjvu() && empty($selectedWorkData['sestavljeno'])) {
-			$file = common_fetchContentFromWiki('index.php?title='.$selectedWork->getLink().'&action=raw&'.time());
-			mkdirine($settings['wikitext-folder']);
-			file_put_contents($selectedWorkFilename, $file);
+			$file = common_fetchPageFromWiki(urldecode($selectedWork->getLink()));
+			common_saveFile($selectedWorkFilename, $file);
 		} else {
 			$file = file_get_contents($selectedWorkFilename);
 		}

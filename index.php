@@ -38,7 +38,7 @@ form.pretvornik {margin-bottom: 40px;}
 <div class="url-naslov">
 	<div class="url-naslov-label"><b>URL-naslov besedila:</b></div>
 	<div><input type="text" name="url" size="60" /> <input type="submit" value="Pretvori" /></div>
-	<div><small>Naslov naj bo oblike http://sl.wikisource.org/wiki/Naslov_dela.</small></div>
+	<div><small>Naslov naj bo oblike <?=htmlspecialchars($settings['wiki-url-prefix'])?>Naslov_dela.</small></div>
 </div>
 
 <p><b>Metapodatki</b><br />

@@ -80,8 +80,9 @@ class Work {
 	}
 
 	public function setID($id) {
+		global $settings;
 		$this->id = (int) $id;
-		$this->prefix = sprintf('WIKI%05d', $this->id);
+		$this->prefix = sprintf($settings['metadata']['signature-prefix'], $this->id);
 	}
 
 	public function setTitle($title) {

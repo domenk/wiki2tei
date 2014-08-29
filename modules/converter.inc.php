@@ -325,22 +325,15 @@ class Converter {
 			$imageData['caption'] = $imageCaption;
 		}
 
-		$imageDataFilename = $settings['cache-folder'].'/'.$imageData['name'].'.dat';
-		if(file_exists($imageDataFilename)) {
-			$imageURL = file_get_contents($imageDataFilename);
-		} else {
-			$MWimageData = unserialize(file_get_contents('http://'.$settings['wiki-domain'].'/w/api.php?action=query&titles=File:'.urlencode($imageData['name']).'&prop=imageinfo&iiprop=url&format=php', null, stream_context_create(array('http' => array('header' => 'User-Agent: Mozilla/4.0 (compatible; MSIE 8.0; WIKI2TEI)')))));
-			if(isset($MWimageData['query']['pages'])) {
-				$MWimageDataPages = array_values($MWimageData['query']['pages']);
-				if(isset($MWimageDataPages[0]['imageinfo'][0]['url'])) {
-					$imageURL = $MWimageDataPages[0]['imageinfo'][0]['url'];
-					if($settings['cache-enabled']) {
-						mkdirine($settings['cache-folder']);
-						file_put_contents($imageDataFilename, $imageURL);
-					}
-				}
-			}
-		}
+		$imageURL = false;
+
+		$MWimageDataDOM = new DOMDocument();
+		$MWimageDataXML = common_fetchContentFromWiki('api.php?action=query&titles=File:'.urlencode($imageData['name']).'&prop=imageinfo&iiprop=url&format=xml', true);
+		$MWimageDataDOM->loadXML($MWimageDataXML);
+		try {
+			$imageURL = $MWimageDataDOM->getElementsByTagName('imageinfo')->item(0)->firstChild->getAttribute('url');
+		} catch(DOMException $e) {}
+
 		if(empty($imageURL)) {
 			common_logNotice('Could not find source of the image '.$imageData['name']);
 		}
@@ -350,8 +343,7 @@ class Converter {
 			$imageFolderLocal = $settings['facsimile-folder'].'/'.$imageFolder;
 			$imageName = pathinfo($imageURL, PATHINFO_BASENAME);
 			if(!file_exists($imageFolderLocal.'/'.$imageName)) {
-				mkdirine($imageFolderLocal);
-				file_put_contents($imageFolderLocal.'/'.$imageName, file_get_contents($imageURL, null, stream_context_create(array('http' => array('header' => 'User-Agent: Mozilla/4.0 (compatible; MSIE 8.0; WIKI2TEI)')))));
+				common_saveFile($imageFolderLocal.'/'.$imageName, file_get_contents($imageURL, null, stream_context_create(array('http' => array('header' => 'User-Agent: Mozilla/4.0 (compatible; MSIE 8.0; WIKI2TEI)')))));
 			}
 			$imageNewURL = $settings['facsimile-url-prefix'].$imageFolder.'/'.$imageName;
 		} else {
@@ -397,10 +389,44 @@ class Converter {
 			$categoryDOM = $DOM->createElement('catRef');
 			$categoryDOM->setAttribute('target', '#'.$category);
 			$categoriesDOM->appendChild($categoryDOM);
-			
+
 			if(is_null($DOM->getElementById($category))) {
 				common_logNotice('Taxonomy category "'.$category.'" does not have definition');
 			}
+		}
+	}
+
+	static public function appendMetadata($DOM, $metadata, $elementName, $parentElementDOM) {
+		$metadata = (array) $metadata;
+		foreach($metadata as $translationLanguage => $translationText) {
+			$translationDOM = $DOM->createElement($elementName);
+			if(is_string($translationLanguage)) {
+				$translationDOM->setAttribute('xml:lang', $translationLanguage);
+			}
+
+			$translationTextProcessed = preg_replace('/\[(http:\/\/[^\]]*?)\s(.*?)\]/', '||LINK:::$1:::$2||', $translationText);
+			$translationTextParts = explode('||', $translationTextProcessed);
+			foreach($translationTextParts as $translationTextPart) {
+				if(mb_substr($translationTextPart, 0, 7) == 'LINK:::') {
+					$translationTextPartParts = explode(':::', $translationTextPart);
+					$translationLinkDOM = $DOM->createElement('ref');
+					$translationLinkDOM->setAttribute('target', $translationTextPartParts[1]);
+					$translationLinkDOM->appendChild($DOM->createTextNode($translationTextPartParts[2]));
+					$translationDOM->appendChild($translationLinkDOM);
+				} else {
+					$translationDOM->appendChild($DOM->createTextNode($translationTextPart));
+				}
+			}
+
+			$parentElementDOM->appendChild($translationDOM);
+		}
+	}
+
+	static public function appendXMLMetadata($DOM, $metadata, $parentElementDOM) {
+		$DOMmetadata = new DOMDocument();
+		$DOMmetadata->loadXML('<xml>'.$metadata.'</xml>');
+		foreach($DOMmetadata->documentElement->childNodes as $metadataElementDOM) {
+			$parentElementDOM->appendChild($DOM->importNode($metadataElementDOM, true));
 		}
 	}
 }

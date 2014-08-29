@@ -13,15 +13,27 @@ if(!empty($settings['notices-filename'])) {
 	set_error_handler('manual_error_handler');
 }
 
-function common_fetchContentFromWiki($query, $domain=null) {
+function common_fetchContentFromWiki($query, $cache=null) {
 	global $settings;
-	return file_get_contents('http://'.(is_null($domain)?$settings['wiki-domain']:$domain).'/w/'.$query, null, stream_context_create(array('http' => array('header' => 'User-Agent: User-Agent: Mozilla/4.0 (compatible; MSIE 8.0; WIKI2TEI)'."\r\n"))));
+	$URL = 'http://'.(isset($settings['wiki-domain'])?$settings['wiki-domain']:$settings['wiki-default-domain']).'/w/'.$query;
+	$cachePath = $settings['cache-folder'].'/'.md5($URL);
+
+	if(file_exists($cachePath) && (filemtime($cachePath) >= time()-$settings['cache-max-age'])) {
+		$content = file_get_contents($cachePath);
+	} else {
+		$content = file_get_contents($URL, null, stream_context_create(array('http' => array('header' => 'User-Agent: User-Agent: Mozilla/4.0 (compatible; MSIE 8.0; WIKI2TEI)'."\r\n"))));
+		if(($content !== false) && ($cache || $settings['cache-enabled']) && ($cache !== false)) {
+			common_saveFile($cachePath, $content);
+		}
+	}
+
+	return $content;
 }
 
-function common_fetchPageFromWiki($pagetitle) {
+function common_fetchPageFromWiki($pagetitle, $forceRefresh=false) {
 	global $settings;
 
-	$file = common_fetchContentFromWiki('index.php?title='.urlencode($pagetitle).'&action=raw&'.time());
+	$file = common_fetchContentFromWiki('index.php?title='.urlencode($pagetitle).'&action=raw&'.($forceRefresh?time():''));
 
 	if(is_string($file)) {
 		$file = trim($file);
@@ -40,8 +52,9 @@ function common_fetchPageFromWiki($pagetitle) {
 
 define('WIKI_FALLBACK_SITENAME', 'Wikisource');
 define('WIKI_FALLBACK_LANGUAGE', 'en');
-function common_fetchWikiSiteinfo($domain=null) {
-	$siteinfoJSON = common_fetchContentFromWiki('api.php?action=query&meta=siteinfo&siprop=general&format=json', $domain);
+define('WIKI_FALLBACK_DOMAIN', 'en.wikisource.org');
+function common_fetchWikiSiteinfo() {
+	$siteinfoJSON = common_fetchContentFromWiki('api.php?action=query&meta=siteinfo&siprop=general&format=json', true);
 	if($siteinfoJSON === false) {return WIKI_GENERAL_SITENAME;}
 
 	$siteinfo = json_decode($siteinfoJSON, true);
@@ -80,11 +93,5 @@ function common_logNotice($message, $error=true, $append=true) {
 	} elseif($settings['notices-output'] == 'silent') {
 	} elseif($error || !$settings['notices-print-only-errors']) {
 		print htmlspecialchars($message).'<br />'."\n";
-	}
-}
-
-function mkdirine($dir) {
-	if(!file_exists($dir)) {
-		mkdir($dir, 0774, true);
 	}
 }
