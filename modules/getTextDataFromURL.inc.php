@@ -7,7 +7,7 @@ if(empty($selectedWork) && !empty($_GET['url'])) {
 
 if(!empty($selectedWork) && $selectedWork->hasLink()) {
 
-	$file = @common_fetchPageFromWiki(urldecode($selectedWork->getLink()));
+	$file = @common_fetchPageFromWiki(urldecode($selectedWork->getLink()), true);
 	if($file === false) {
 		exit('There is no page at the entered URL address.');
 	}

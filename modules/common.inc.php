@@ -33,7 +33,7 @@ function common_fetchContentFromWiki($query, $cache=null) {
 function common_fetchPageFromWiki($pagetitle, $forceRefresh=false) {
 	global $settings;
 
-	$file = common_fetchContentFromWiki('index.php?title='.urlencode($pagetitle).'&action=raw&'.($forceRefresh?time():''));
+	$file = common_fetchContentFromWiki('index.php?title='.urlencode($pagetitle).'&action=raw&'.($forceRefresh?time():''), ($forceRefresh?false:null));
 
 	if(is_string($file)) {
 		$file = trim($file);
