@@ -90,6 +90,7 @@ $workTaxonomy = array();
 foreach($workTaxonomyMetadata as $workTaxonomyMetadataEntry) {
 	$workTaxonomy[] = $workTaxonomyMetadataEntry[0];
 }
+$workTaxonomy = array_unique($workTaxonomy);
 $selectedWork->addCategories($workTaxonomy);
 
 

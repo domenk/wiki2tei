@@ -102,7 +102,7 @@ class Work {
 	}
 
 	public function addCategories($category) {
-		$this->categories = array_merge($this->categories, array_map('trim', (array) $category));
+		$this->categories = array_unique(array_merge($this->categories, array_map('trim', (array) $category)));
 	}
 
 	public function setPublisher($publisher) {

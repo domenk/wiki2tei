@@ -16,7 +16,7 @@ $settings['text-data-modules'] = array(
 
 $settings['redirect-magicwords'] = array('redirect', 'preusmeritev');
 
-$settings['download-xml'] = false;
+$settings['download-xml'] = true;
 // $settings['save-xml'] = false; // uncomment only if you want to override modules' default setting
 // $settings['save-images'] = false; // uncomment only if you want to override modules' default setting
 $settings['wikitext-folder'] = 'originals';

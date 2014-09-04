@@ -70,6 +70,7 @@ form.pretvornik {margin-bottom: 40px;}
 			</table>
 		</td>
 	</tr>
+	<tr><td><input type="reset" value="Ponastavi" /></td><td></td></tr>
 </table>
 </form>
 

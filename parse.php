@@ -418,7 +418,7 @@ $file = '<TEI xml:lang="'.$siteinfo['language'].'">
 		<encodingDesc>
 			<projectDesc></projectDesc>
 			<appInfo>
-				<application version="0.1" ident="wiki2tei">
+				<application version="1.0" ident="wiki2tei">
 					<label xml:lang="en">Converter from Wikisource MediaWiki format to TEI P5</label>
 					<p xml:lang="en">Converter for (primarily) the <ref target="http://sl.wikisource.org/">Wikivir Slovene library</ref> into <ref target="http://www.tei-c.org/">TEI P5</ref>.</p>
 					<p xml:lang="en">Source code can be found on <ref target="http://github.com/domenk/wiki2tei">Github</ref>.</p>
@@ -449,7 +449,7 @@ $file = '<TEI xml:lang="'.$siteinfo['language'].'">
 	<text>
 		<front xml:lang="'.$siteinfo['language'].'">
 			<titlePage>
-				<titlePart xml:lang="'.$siteinfo['language'].'" type="reg" wiki2tei-metadata="title-normalised">Title of work</titlePart>
+				<titlePart type="reg" wiki2tei-metadata="title-normalised">Title of work</titlePart>
 				<docAuthor wiki2tei-metadata="author">Author</docAuthor>
 				<docDate wiki2tei-metadata="date-short">9999</docDate>
 			</titlePage>
@@ -1173,7 +1173,7 @@ if($settings['save-xml']) {
 }
 
 if(!empty($settings['download-xml'])) {
-	header('Content-Disposition: attachment; filename="'.($selectedWork->hasTitle()?common_replaceSpecialCharacters($selectedWork->getNormalisedTitle()):'tei').'.xml"');
+	header('Content-Disposition: attachment; filename="'.common_replaceSpecialCharacters(urldecode($selectedWork->getLink())).'.xml"');
 }
 
 header('Content-Type: text/xml');
