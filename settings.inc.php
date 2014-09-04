@@ -33,6 +33,10 @@ $settings['notices-print-only-errors'] = true;
 
 $settings['metadata'] = array(
 	'principal' => '[http://nl.ijs.si/et/ Tomaž Erjavec (IJS)]', // content of teiHeader/fileDesc/titleStmt/principal/name
+	'application' => array( // additional content of teiHeader/encodingDesc/appInfo/application
+		'en' => 'The converter is available at [http://nl.ijs.si/wiki2tei/ nl.ijs.si/wiki2tei], on the natural language server at the Jožef Stefan Institute.',
+		'sl' => 'Pretvornik je na voljo na [http://nl.ijs.si/wiki2tei/ nl.ijs.si/wiki2tei], na jezikovnem strežniku instituta Jožef Stefan.',
+	),
 	'availability' => array( // content of teiHeader/fileDesc/publicationStmt/availability
 		'en' => 'This work is licensed under a [http://creativecommons.org/licenses/by-sa/4.0/ Creative Commons Attribution-ShareAlike 4.0 International License].',
 		'sl' => 'Besedilo je na razpolago pod dovoljenjem [http://creativecommons.org/licenses/by-sa/4.0/ Creative Commons Priznanje avtorstva-Deljenje pod enakimi pogoji 4.0 mednarodna licenca].',

@@ -389,10 +389,6 @@ $file = '<TEI xml:lang="'.$siteinfo['language'].'">
 			<titleStmt>
 				<title wiki2tei-metadata="title-rich">Author: Title of work. (9999) [Wikisource]</title>
 				<principal></principal>
-				<respStmt>
-					<name><ref target="http://github.com/domenk/wiki2tei">wiki2tei</ref></name>
-					<resp>Conversion of Wiki/DjVu format to TEI.</resp>
-				</respStmt>
 			</titleStmt>
 			<editionStmt>
 				<edition>1.0</edition>
@@ -421,6 +417,13 @@ $file = '<TEI xml:lang="'.$siteinfo['language'].'">
 		</fileDesc>
 		<encodingDesc>
 			<projectDesc></projectDesc>
+			<appInfo>
+				<application version="0.1" ident="wiki2tei">
+					<label xml:lang="en">Converter from Wikisource MediaWiki format to TEI P5</label>
+					<p xml:lang="en">Converter for (primarily) the <ref target="http://sl.wikisource.org/">Wikivir Slovene library</ref> into <ref target="http://www.tei-c.org/">TEI P5</ref>.</p>
+					<p xml:lang="en">Source code can be found on <ref target="http://github.com/domenk/wiki2tei">Github</ref>.</p>
+				</application>
+			</appInfo>
 			<editorialDecl>
 				<p wiki2tei-metadata="note">Note</p>
 			</editorialDecl>
@@ -864,6 +867,7 @@ while($PDOMs->length > 0) {
 // metadata from settings
 $DOMXPath = new DOMXPath($DOM);
 Converter::appendMetadata($DOM, $settings['metadata']['principal'], 'name', $DOMXPath->query('teiHeader/fileDesc/titleStmt/principal')->item(0));
+Converter::appendMetadata($DOM, $settings['metadata']['application'], 'p', $DOMXPath->query('teiHeader/encodingDesc/appInfo/application')->item(0));
 Converter::appendMetadata($DOM, $settings['metadata']['availability'], 'p', $DOMXPath->query('teiHeader/fileDesc/publicationStmt/availability')->item(0));
 Converter::appendMetadata($DOM, $settings['metadata']['translation-translator'], 'resp', $DOMXPath->query('teiHeader/fileDesc/sourceDesc/bibl/respStmt')->item(0));
 Converter::appendMetadata($DOM, $settings['metadata']['pubPlace'], 'pubPlace', $DOMXPath->query('text/front/docImprint')->item(0));
