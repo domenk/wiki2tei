@@ -1,7 +1,5 @@
 <?php
 
-include_once('getAuthorMetadata.inc.php');
-
 $metadata = array(
 	'title' => array(),
 	'title-normalised' => array(),
@@ -47,32 +45,55 @@ if(is_array($metadata['title'])) {
 }
 
 
-/* ###
-$faksimileMP = array();
+/*
+// extract data about facsimile (currently not used)
+$facsimileMetadata = array();
 while(isset($templateNaslovMP['vir'])) {
 	$parse = Converter::parseWikiTemplate($templateNaslovMP['vir'], 'fc');
 	if(empty($parse)) {break;}
 	if(isset($parse['s'])) {$parse['s'] = Converter::getPagesFromString($parse['s']);}
 	if(isset($parse['si'])) {$parse['si'] = Converter::getPagesFromString($parse['si']);}
 	if(isset($parse['s']) && isset($parse['si']) && (count($parse['s']) != count($parse['si']))) {
-		trigger_error('Stevilo strani v @s se ne ujema s @si');
+		trigger_error('Number of pages in @s does not match with @si');
 		$parse['error'] = '@s!=@si';
 	} else {
 		unset($parse['s'], $parse['si']);
 	}
-	$faksimileMP[] = $parse;
+	$facsimileMetadata[] = $parse;
 }
 */
+
+
+// set metadata
+if(!$selectedWork->hasTitle() && !empty($metadata['title'])) {
+	$selectedWork->setTitle(is_array($metadata['title'])?$metadata['title'][0]:$metadata['title']);
+}
+if(!$selectedWork->hasNormalisedTitle() && !empty($metadata['title-normalised'])) {
+	$selectedWork->setNormalisedTitle(is_array($metadata['title-normalised'])?$metadata['title-normalised'][0]:$metadata['title-normalised']);
+}
+if(!$selectedWork->hasAuthors() && !empty($metadata['author'])) {
+	$metadata['author'] = Wiki::getAuthorFullName($metadata['author']);
+	$selectedWork->addAuthors($metadata['author']);
+}
+if(!$selectedWork->hasYears() && !empty($metadata['year'])) {
+	$selectedWork->addYears($metadata['year']);
+}
+if(!$selectedWork->hasPublisher() && !empty($metadata['publisher'])) {
+	$selectedWork->setPublisher(is_array($metadata['publisher'])?$metadata['publisher'][0]:$metadata['publisher']);
+}
+if(!$selectedWork->hasTranslator() && !empty($metadata['translator'])) {
+	$selectedWork->setTranslator(is_array($metadata['translator'])?$metadata['translator'][0]:$metadata['translator']);
+}
 
 
 // extract taxonomy from categories
 $workTaxonomyMetadata = array();
 
-$workCategories = common_fetchWikiPageCategoriesDeep(urldecode($selectedWork->getLink()));
+$workCategories = Wiki::fetchPageCategoriesDeep(urldecode($selectedWork->getLink()));
 $taxonomyByMetadataCategories = common_getTaxonomyByMetadataCategories($settings['taxonomy-categories']);
 foreach($workCategories as $workCategory) {
-	$workCategoryName = explode(':', $workCategory, 2);
-	$workCategoryName = $workCategoryName[1];
+	$workCategoryNameParts = explode(':', $workCategory, 2);
+	$workCategoryName = $workCategoryNameParts[1];
 	if(isset($taxonomyByMetadataCategories[$workCategoryName])) {
 		$taxonomyMetadataCategories = $taxonomyByMetadataCategories[$workCategoryName];
 		foreach($taxonomyMetadataCategories as $taxonomyMetadataCategory) {
@@ -92,25 +113,3 @@ foreach($workTaxonomyMetadata as $workTaxonomyMetadataEntry) {
 }
 $workTaxonomy = array_unique($workTaxonomy);
 $selectedWork->addCategories($workTaxonomy);
-
-
-
-if(!$selectedWork->hasTitle() && !empty($metadata['title'])) {
-	$selectedWork->setTitle(is_array($metadata['title'])?$metadata['title'][0]:$metadata['title']);
-}
-if(!$selectedWork->hasNormalisedTitle() && !empty($metadata['title-normalised'])) {
-	$selectedWork->setNormalisedTitle(is_array($metadata['title-normalised'])?$metadata['title-normalised'][0]:$metadata['title-normalised']);
-}
-if(!$selectedWork->hasAuthors() && !empty($metadata['author'])) {
-	$metadata['author'] = wiki_getAuthorFullName($metadata['author']);
-	$selectedWork->addAuthors($metadata['author']);
-}
-if(!$selectedWork->hasYears() && !empty($metadata['year'])) {
-	$selectedWork->addYears($metadata['year']);
-}
-if(!$selectedWork->hasPublisher() && !empty($metadata['publisher'])) {
-	$selectedWork->setPublisher(is_array($metadata['publisher'])?$metadata['publisher'][0]:$metadata['publisher']);
-}
-if(!$selectedWork->hasTranslator() && !empty($metadata['translator'])) {
-	$selectedWork->setTranslator(is_array($metadata['translator'])?$metadata['translator'][0]:$metadata['translator']);
-}

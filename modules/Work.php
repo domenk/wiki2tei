@@ -68,7 +68,7 @@ class Work {
 	}
 
 	public function getSignature() {
-		return $this->prefix.'-'.intval(isset($this->years[0])?$this->years[0]:0); // intval is used for cases as 1938/1939
+		return $this->prefix.'-'.intval(isset($this->years[0])?$this->years[0]:0); // intval is used for cases like "1938/1939"
 	}
 
 	public function isDjvu() {
@@ -94,15 +94,15 @@ class Work {
 	}
 
 	public function addAuthors($author) {
-		$this->authors = array_merge($this->authors, array_map('trim', (array) $author));
+		$this->authors = $this->mergeArrays($this->authors, $author);
 	}
 
 	public function addYears($year) {
-		$this->years = array_merge($this->years, array_map('trim', (array) $year));
+		$this->years = $this->mergeArrays($this->years, $year);
 	}
 
 	public function addCategories($category) {
-		$this->categories = array_unique(array_merge($this->categories, array_map('trim', (array) $category)));
+		$this->categories = $this->mergeArrays($this->categories, $category);
 	}
 
 	public function setPublisher($publisher) {
@@ -159,5 +159,15 @@ class Work {
 
 	public function hasNote() {
 		return !empty($this->note);
+	}
+
+	protected function mergeArrays($array1, $array2) {
+		$finalArray = array();
+		$arrays = func_get_args();
+		foreach($arrays as $array) {
+			$finalArray = array_merge($finalArray, array_map('trim', (array) $array));
+		}
+		$finalArray = array_unique($finalArray);
+		return $finalArray;
 	}
 }

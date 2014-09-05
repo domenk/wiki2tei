@@ -2,11 +2,11 @@
 
 $settings = array();
 
-$settings['timezone'] = 'Europe/Ljubljana';
-$settings['facsimile-url-prefix'] = 'http://nl.ijs.si/imp/wikivir/facs/';
-$settings['wiki-default-domain'] = 'sl.wikisource.org';
+$settings['timezone'] = 'Europe/London';
+$settings['facsimile-url-prefix'] = '';
+$settings['wiki-default-domain'] = 'en.wikisource.org';
 $settings['wiki-url-prefix'] = 'http://*.wikisource.org/wiki/'; // use * for any combination of letters, numbers and hyphen
-$settings['relaxng-scheme'] = 'tei_imp.rng'; // set to false to skip validation
+$settings['relaxng-schema'] = false; // path to file; set to false to skip validation
 
 $settings['text-data-modules'] = array(
 	'FromURL',
@@ -14,11 +14,10 @@ $settings['text-data-modules'] = array(
 	// 'FromFile',
 );
 
-$settings['redirect-magicwords'] = array('redirect', 'preusmeritev');
-
-$settings['download-xml'] = true;
+$settings['download-xml'] = false;
 // $settings['save-xml'] = false; // uncomment only if you want to override modules' default setting
 // $settings['save-images'] = false; // uncomment only if you want to override modules' default setting
+
 $settings['wikitext-folder'] = 'originals';
 $settings['xml-folder'] = 'xml';
 $settings['facsimile-folder'] = 'facsimile';
@@ -31,26 +30,34 @@ $settings['notices-output'] = 'file'; // print | file | silent
 $settings['notices-filename'] = 'CONVERTLOG';
 $settings['notices-print-only-errors'] = true;
 
-$settings['metadata'] = array(
-	'principal' => '[http://nl.ijs.si/et/ Tomaž Erjavec (IJS)]', // content of teiHeader/fileDesc/titleStmt/principal/name
-	'application' => array( // additional content of teiHeader/encodingDesc/appInfo/application
-		'en' => 'The converter is available at [http://nl.ijs.si/wiki2tei/ nl.ijs.si/wiki2tei], on the natural language server at the Jožef Stefan Institute.',
-		'sl' => 'Pretvornik je na voljo na [http://nl.ijs.si/wiki2tei/ nl.ijs.si/wiki2tei], na jezikovnem strežniku instituta Jožef Stefan.',
-	),
+
+// general metadata
+$settings['metadata'] = array( // where array is the metadata value, this array is of form lang_code => content
+	'principal' => '', // content of teiHeader/fileDesc/titleStmt/principal/name
+	'application' => array(), // additional content of teiHeader/encodingDesc/appInfo/application
 	'availability' => array( // content of teiHeader/fileDesc/publicationStmt/availability
 		'en' => 'This work is licensed under a [http://creativecommons.org/licenses/by-sa/4.0/ Creative Commons Attribution-ShareAlike 4.0 International License].',
 		'sl' => 'Besedilo je na razpolago pod dovoljenjem [http://creativecommons.org/licenses/by-sa/4.0/ Creative Commons Priznanje avtorstva-Deljenje pod enakimi pogoji 4.0 mednarodna licenca].',
 	),
-	'projectDesc' => '<p>Projekt <ref target="http://nl.ijs.si/imp/">IMP</ref>: <q>Jezikovni viri starejše slovenščine</q>.</p><p>Projekt <ref target="http://sl.wikisource.org/wiki/Wikivir:Slovenska_leposlovna_klasika">Wikivir</ref>: <q>Slovenska leposlovna klasika</q>.</p>', // raw XML; content of teiHeader/encodingDesc/projectDesc
+	'projectDesc' => '', // raw XML; content of teiHeader/encodingDesc/projectDesc
 	'translation-translator' => array( // content of teiHeader/fileDesc/sourceDesc/bibl/respStmt
 		'en' => 'Translator',
 		'sl' => 'Prevajalec',
 	),
-	'pubPlace' => 'Digitalna knjižnica [http://nl.ijs.si/imp/ IMP]', // content of text/front/docImprint/pubPlace
+	'pubPlace' => '', // content of text/front/docImprint/pubPlace
 	'signature-prefix' => 'WIKI%05d', // PHP sprintf format
 );
 
-$settings['taxonomy-categories'] = array(
+
+// metadata extraction from templates
+$settings['author-template'] = 'avtor';
+$settings['author-template-firstname-parameter'] = 'ime';
+$settings['author-template-lastname-parameter'] = 'priimek';
+$settings['author-fullname-pattern'] = '{lastname}, {firstname}'; // you can use labels {firstname} and {lastname}
+
+
+// taxonomy
+$settings['taxonomy-categories'] = array( // key metadata-categories is array[] of array(string category_name, bool category_can_be_overwritten)
 	array(
 		'id' => 'Text.medium',
 		'desc' => array('sl' => 'prenosnik', 'en' => 'medium'),
@@ -140,3 +147,7 @@ $settings['taxonomy-categories'] = array(
 		),
 	),
 );
+
+if(file_exists('settings.additional.inc.php')) {
+	require('settings.additional.inc.php');
+}

@@ -1,9 +1,8 @@
 <?php
 
 require('settings.inc.php');
-require('modules/common.inc.php');
-require('modules/converter.inc.php');
-require('modules/work.inc.php');
+require('modules/common.php');
+require('modules/wiki.php');
 
 common_logNotice('', false);
 
@@ -24,7 +23,7 @@ common_logNotice('Converting '.$selectedWork->getPrefix().' at '.date('r'), fals
 // get missing metadata from wikitext
 require('modules/getMetadataFromWikitext.inc.php');
 
-$siteinfo = common_fetchWikiSiteinfo();
+$siteinfo = Wiki::fetchSiteinfo();
 
 
 Converter::addReplacePair('/{{\s*[Nn]ejasno\s*}}/sU', '<gap reason="illegible" />');
@@ -418,7 +417,7 @@ $file = '<TEI xml:lang="'.$siteinfo['language'].'">
 		<encodingDesc>
 			<projectDesc></projectDesc>
 			<appInfo>
-				<application version="1.0" ident="wiki2tei">
+				<application version="0.1" ident="wiki2tei">
 					<label xml:lang="en">Converter from Wikisource MediaWiki format to TEI P5</label>
 					<p xml:lang="en">Converter for (primarily) the <ref target="http://sl.wikisource.org/">Wikivir Slovene library</ref> into <ref target="http://www.tei-c.org/">TEI P5</ref>.</p>
 					<p xml:lang="en">Source code can be found on <ref target="http://github.com/domenk/wiki2tei">Github</ref>.</p>
@@ -1162,8 +1161,8 @@ $DOM->loadXML($file);
 $DOM->formatOutput = true;
 $file = $DOM->saveXML();
 
-if(!empty($settings['relaxng-scheme'])) {
-	Converter::validateByRelaxNG($DOM, $settings['relaxng-scheme']);
+if(!empty($settings['relaxng-schema'])) {
+	Converter::validateByRelaxNG($DOM, $settings['relaxng-schema']);
 }
 
 Converter::checkUnconvertedSyntax($file);

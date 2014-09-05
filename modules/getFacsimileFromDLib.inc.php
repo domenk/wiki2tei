@@ -1,7 +1,11 @@
 <?php
 
+// fetch facsimile from dlib.si
+// pdfimages is binary from http://www.foolabs.com/xpdf/download.html
+
 // currently disabled
-if(false && !file_exists($selectedWork['prefix']) && !file_exists('faksimili/'.$selectedWork['prefix'])) {
+
+if(false && !file_exists($selectedWork->getPrefix()) && !file_exists($settings['facsimile-folder'].'/'.$selectedWork->getPrefix())) {
 
 	set_time_limit(1800);
 	flush();
@@ -36,11 +40,11 @@ if(false && !file_exists($selectedWork['prefix']) && !file_exists('faksimili/'.$
 	foreach(scandir('extracted') as $file) {
 		if(!is_file('extracted/'.$file)) {continue;}
 		$ext = pathinfo($file, PATHINFO_EXTENSION);
-		rename('extracted/'.$file, 'extracted/'.$selectedWork['prefix'].'-'.sprintf('%03d', $i).'.'.$ext);
+		rename('extracted/'.$file, 'extracted/'.$selectedWork->getPrefix().'-'.sprintf('%03d', $i).'.'.$ext);
 		$i++;
 	}
 
-	rename('extracted', $selectedWork['prefix']);
-	rename($PDFname, 'faksimili/'.$PDFname);
+	rename('extracted', $selectedWork->getPrefix());
+	rename($PDFname, $settings['facsimile-folder'].'/'.$PDFname);
 
 }

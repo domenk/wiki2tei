@@ -11,16 +11,16 @@ if(!empty($_GET['id'])) {
 		$selectedWorkData = $works[$selectedWorkID];
 		$selectedWork = new Work($selectedWorkID);
 
-		$selectedWork->setTitle($selectedWorkData['naslov']);
-		$selectedWork->addAuthors($selectedWorkData['avtor']);
-		$selectedWork->addYears($selectedWorkData['leto']);
-		$selectedWork->setLink($selectedWorkData['povezava']);
+		$selectedWork->setTitle($selectedWorkData['title']);
+		$selectedWork->addAuthors($selectedWorkData['author']);
+		$selectedWork->addYears($selectedWorkData['year']);
+		$selectedWork->setLink($selectedWorkData['link']);
 		$selectedWork->setDjvu(!empty($selectedWorkData['djvu']));
-		$selectedWork->setFacsimile(empty($selectedWorkData['ni-faksimila']));
-		if(!empty($selectedWorkData['opomba'])) {$selectedWork->setNote($selectedWorkData['opomba']);}
+		$selectedWork->setFacsimile(empty($selectedWorkData['no-facsimile']));
+		if(!empty($selectedWorkData['opomba'])) {$selectedWork->setNote($selectedWorkData['note']);}
 
 		$selectedWorkFilename = $settings['wikitext-folder'].'/'.$selectedWork->getID().'.txt';
-		if(!file_exists($selectedWorkFilename) && !$selectedWork->isDjvu() && empty($selectedWorkData['sestavljeno'])) {
+		if(!file_exists($selectedWorkFilename) && !$selectedWork->isDjvu() && empty($selectedWorkData['manually-put-together'])) {
 			$file = common_fetchPageFromWiki(urldecode($selectedWork->getLink()), true);
 			common_saveFile($selectedWorkFilename, $file);
 		} else {
