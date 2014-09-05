@@ -26,10 +26,10 @@ require('modules/getMetadataFromWikitext.inc.php');
 $siteinfo = Wiki::fetchSiteinfo();
 
 
-Converter::addReplacePair('/{{\s*[Nn]ejasno\s*}}/sU', '<gap reason="illegible" />'); ### generalise
-Converter::addReplacePair('/{{\s*[Nn]ejasno\s*\|([^\|]*)}}/sU', '<unclear>$1</unclear>');
-Converter::addReplacePair('/{{\s*[Nn]ejasno\s*\|([^\|]*)\|([^\|]*)}}/sU', '<choice><unclear>$1</unclear><corr>$2</corr></choice>');
-Converter::addReplacePair('/{{\s*[Rr]edakcija\s*\|([^\|]*)\|([^\|]*)}}/sU', '<choice><sic>$1</sic><corr>$2</corr></choice>');
+Converter::addReplacePair('/{{\s*'.Wiki::getTemplateNamePattern($settings['unclear-template']).'\s*}}/sU', '<gap reason="illegible" />');
+Converter::addReplacePair('/{{\s*'.Wiki::getTemplateNamePattern($settings['unclear-template']).'\s*\|([^\|]*)}}/sU', '<unclear>$1</unclear>');
+Converter::addReplacePair('/{{\s*'.Wiki::getTemplateNamePattern($settings['unclear-template']).'\s*\|([^\|]*)\|([^\|]*)}}/sU', '<choice><unclear>$1</unclear><corr>$2</corr></choice>');
+Converter::addReplacePair('/{{\s*'.Wiki::getTemplateNamePattern($settings['redaction-template']).'\s*\|([^\|]*)\|([^\|]*)}}/sU', '<choice><sic>$1</sic><corr>$2</corr></choice>');
 
 // mark page breaks
 if(!empty($settings['pagebreak-template'])) {
@@ -85,76 +85,63 @@ $DOM = Converter::removeComments($DOM);
 
 
 
-// če se za <references> nahaja <ref>, lahko pride do težav, zato zadaj vstavimo prazno vrstico  ### je to še vedno potrebno?
-foreach($DOM->getElementsByTagName('references') as $referencesDOM) {
-	$referencesDOM->parentNode->insertBefore($DOM->createTextNode("\n"), $referencesDOM->nextSibling);
-}
+// process elements ref and references
+$documentRefs = array(1 => array(), 'editorial' => array());
+$documentRefsCount = array(1 => 0, 'editorial' => 0);
+$DOMXPath = new DOMXPath($DOM);
+$referenceDOMs = $DOMXPath->query('//ref | //references');
+for($a = 0; $a < $referenceDOMs->length; $a++) {
+	$referenceDOM = $referenceDOMs->item($a);
+	$referenceGroup = (trim($referenceDOM->getAttribute('group'))=='editorial'?'editorial':1);
 
-// process ref
-$docRefs = array(1 => array(), 'editorial' => array());
-$docRefLines = array();
-$refDOMs = $DOM->getElementsByTagName('ref');
-for($a = 0; $a < $refDOMs->length; $a++) {
-	if($a < 0) {$a = 0;}
-	$refDOM = $refDOMs->item($a);
-	$refGroup = (trim($refDOM->getAttribute('group'))=='editorial'?'editorial':1);
-	$docRefNum = count($docRefs[$refGroup])+1;
-	$refID = 'ref'.$docRefNum.($refGroup=='editorial'?'-editor':'');
+	if($referenceDOM->nodeName == 'ref') {
+		$referenceNumber = ++$documentRefsCount[$referenceGroup];
+		$referenceID = 'ref'.$referenceNumber.($referenceGroup=='editorial'?'-editor':'');
 
-	$noteDOM = $DOM->createElement('note');
-	$noteDOM->setAttribute('xml:id', $refID);
-	$noteDOM->setAttribute('type', ($refGroup=='editorial'?'editorial':'authorial'));
-	$noteDOM->setAttribute('place', 'foot');
-	$noteDOM->appendChild($DOM->createTextNode('___TEI_LEVEL_HIGHER____'));
-	while($refDOM->childNodes->length) {
-		if(($refDOM->firstChild->nodeName == '#text') && strstr($refDOM->firstChild->nodeValue, "\n")) {
-			$nodeValue = explode("\n", $refDOM->firstChild->nodeValue);
-			for($i = 0; $i < count($nodeValue); $i++) {
-				if($i != 0) {$noteDOM->appendChild($DOM->createElement('lb'));}
-				$noteDOM->appendChild($DOM->createTextNode($nodeValue[$i]));
+		$noteDOM = $DOM->createElement('note');
+		$noteDOM->setAttribute('xml:id', $referenceID);
+		$noteDOM->setAttribute('type', ($referenceGroup=='editorial'?'editorial':'authorial'));
+		$noteDOM->setAttribute('place', 'foot');
+		$noteDOM->appendChild($DOM->createTextNode('___TEI_LEVEL_HIGHER____'));
+		while($referenceDOM->childNodes->length) {
+			if(($referenceDOM->firstChild->nodeName == '#text') && strstr($referenceDOM->firstChild->nodeValue, "\n")) {
+				$nodeValue = explode("\n", $referenceDOM->firstChild->nodeValue);
+				for($i = 0; $i < count($nodeValue); $i++) {
+					if($i != 0) {$noteDOM->appendChild($DOM->createElement('lb'));}
+					$noteDOM->appendChild($DOM->createTextNode($nodeValue[$i]));
+				}
+				$referenceDOM->removeChild($referenceDOM->firstChild);
+			} else {
+				$noteDOM->appendChild($referenceDOM->firstChild);
 			}
-			$refDOM->removeChild($refDOM->firstChild);
+		}
+		$noteDOM->appendChild($DOM->createTextNode('___TEI_LEVEL_LOWER_____'));
+
+		if(!$settings['tei-enable-anchor-references'] || $selectedWork->isDjvu()) {
+			$refDOM->parentNode->replaceChild($noteDOM, $refDOM);
+			$a--;
 		} else {
-			$noteDOM->appendChild($refDOM->firstChild);
+			$documentRefs[$referenceGroup][] = $noteDOM;
+			$referenceNewDOM = $DOM->createElement('ref');
+			$referenceNewDOM->setAttribute('target', '#'.$referenceID);
+			$referenceNewDOM->setAttribute('type', 'noteAnchor');
+			$referenceNewDOM->appendChild($DOM->createTextNode('['.$referenceNumber.']'));
+			$referenceDOM->parentNode->replaceChild($referenceNewDOM, $referenceDOM);
 		}
-	}
-	$noteDOM->appendChild($DOM->createTextNode('___TEI_LEVEL_LOWER_____'));
-
-	if(!$settings['tei-enable-anchor-references'] || $selectedWork->isDjvu()) {
-		$docRefs[$refGroup][$docRefNum] = 1;
-		$refDOM->parentNode->replaceChild($noteDOM, $refDOM);
-		$a--;
-	} else {
-		$docRefs[$refGroup][$docRefNum] = $noteDOM;
-		$docRefLines[$refDOM->getLineNo()][$refGroup][] = $docRefNum;
-		$refNewDOM = $DOM->createElement('ref');
-		$refNewDOM->setAttribute('target', '#'.$refID);
-		$refNewDOM->setAttribute('type', 'noteAnchor');
-		$refNewDOM->appendChild($DOM->createTextNode('['.$docRefNum.']'));
-		$refDOM->parentNode->replaceChild($refNewDOM, $refDOM);
-	}
-}
-
-// copy ref on references position
-while($DOM->getElementsByTagName('references')->length) {
-	$referencesDOM = $DOM->getElementsByTagName('references')->item(0);
-	$refGroup = (trim($referencesDOM->getAttribute('group'))=='editorial'?'editorial':1);
-	$refLineNo = $referencesDOM->getLineNo();
-	$pDOM = $DOM->createElement('p');
-	$referencesDOM->parentNode->replaceChild($pDOM, $referencesDOM);
-	foreach($docRefLines as $line => $refs) {
-		if($line > $refLineNo) {continue;}
-		foreach($refs[$refGroup] as $refID) {
-			$pDOM->appendChild($docRefs[$refGroup][$refID]);
+	} elseif($referenceDOM->nodeName == 'references') {
+		$pDOM = $DOM->createElement('p');
+		$referenceDOM->parentNode->replaceChild($pDOM, $referenceDOM);
+		foreach($documentRefs[$referenceGroup] as $noteDOM) {
+			$pDOM->appendChild($noteDOM);
 		}
-		$docRefLines[$line][$refGroup] = array();
+		$documentRefs[$referenceGroup] = array();
 	}
 }
 
 // check if we have any ref that has not been written
-foreach($docRefLines as $num => $docRefLine) {
-	if(!empty($docRefLine[1]) || !empty($docRefLine['editorial'])) {
-		common_logNotice('Some ref elements were not written (line '.$num.')');
+foreach($documentRefs as $documentRefGroup => $documentRefEntries) {
+	if(!empty($documentRefEntries)) {
+		common_logNotice('Some ref elements were not written (group '.$documentRefGroup.')');
 	}
 }
 
@@ -344,7 +331,6 @@ for($i = 0; $i < $filestrlen; $i++) {
 		$appendToNewFile = (!empty($paraOpened[$parserLevel])?str_repeat('</hi>', count($STYLEopened[$parserLevel])).$paraCloseTag[$paraTypeTemp]:'');
 		$paraOpened[$parserLevel] = false;
 	} elseif($substr == '___TEI_POEM_NEW________') {
-		// !!! preveri, če se ohrani postavitev poem, če je <center><poem> ###
 		$appendToNewFile = ($paraOpened[$parserLevel]?str_repeat('</hi>', count($STYLEopened[$parserLevel])).$paraCloseTag[$paraType[$parserLevel]]:'').$paraOpenTag['poem'];
 		$paraType[$parserLevel] = 'p';
 		$poemOpened[$parserLevel] = true;
@@ -946,7 +932,6 @@ for($i = $metadataElementsDOM->length-1; $i >= 0; $i--) {
 	}
 }
 
-##################### OD TUKAJ NAPREJ NEPREGLEDANO #####################
 
 // prepare back for surfaces that do not have pb
 $divDOM = $DOM->getElementsByTagName('text')->item(0)->appendChild($DOM->createElement('back'))->appendChild($DOM->createElement('div'));
@@ -958,7 +943,7 @@ $divDOM->appendChild($headDOM);
 $facsimileList = array(); // list of facsimiles in surface
 $facsDOM = $DOM->getElementsByTagName('facsimile')->item(0);
 $facsDOM->setAttribute('xml:id', $selectedWork->getPrefix().'-facs');
-$deloNaslovCleanSC = common_replaceSpecialCharacters($selectedWork->getNormalisedTitle()); ### je to sploh potrebno?
+$workTitleCleanSC = common_replaceSpecialCharacters($selectedWork->getNormalisedTitle());
 $facsDir = 'faksimili/'.$selectedWork->getPrefix().'/';
 if(file_exists($facsDir)) {
 	$facsFiles = scandir($facsDir);
@@ -969,21 +954,21 @@ if(file_exists($facsDir)) {
 		$facsFilename = pathinfo($facsFile, PATHINFO_FILENAME);
 		$facsFilenameData = array_map('strrev', explode('-', strrev($facsFilename), 2));
 
-		// <surface xml:id="WIKI0100-001">
+		// <surface xml:id="WIKI00338-001">
 		$surfaceDOM = $DOM->createElement('surface');
 		$surfaceDOM->setAttribute('xml:id', $facsFilename);
 		$facsDOM->appendChild($surfaceDOM);
 		$facsimileList[$facsFilename] = true;
 
-		// <desc xml:lang="sl">Faksimile oreharjev_blaz, stran 1</desc>
+		// <desc xml:lang="en">Facsimile work_title, page 1</desc>
 		$descDOM = $DOM->createElement('desc');
 		$descDOM->setAttribute('xml:lang', $siteinfo['language']);
 		$facsSurfacePage = intval($facsFilenameData[0]);
-		$descDOM->appendChild($DOM->createTextNode('Faksimile '.$deloNaslovCleanSC.', '.($facsSurfacePage==0?'naslovnica':'stran '.$facsSurfacePage)));
+		$descDOM->appendChild($DOM->createTextNode($settings['metadata']['facsimile-surface-desc-facsimile'].' '.$workTitleCleanSC.', '.($facsSurfacePage==0?$settings['metadata']['facsimile-surface-desc-cover']:$settings['metadata']['facsimile-surface-desc-page'].' '.$facsSurfacePage)));
 		$surfaceDOM->appendChild($descDOM);
 
 		foreach(array('orig','medium','small','thumb') as $graphicType) {
-			// <graphic n="thumb" url="facs/WIKI0100/WIKI0100-001_t.jpg"/>
+			// <graphic n="thumb" url="facs/WIKI00338/WIKI00338-001_t.jpg"/>
 			$graphicDOM = $DOM->createElement('graphic');
 			$graphicDOM->setAttribute('n', $graphicType);
 			$graphicDOM->setAttribute('url', $settings['facsimile-url-prefix'].$selectedWork->getPrefix().'/'.($graphicType=='orig'?$facsFile:$facsFilename.'_'.mb_substr($graphicType, 0, 1).'.jpg'));
@@ -991,7 +976,7 @@ if(file_exists($facsDir)) {
 		}
 
 		if(!$DOM->getElementById('pb.'.sprintf('%03d', $facsSurfacePage)) || ($facsSurfacePage == 0)) {
-			// <pb facs="#WIKI0100-001" n="1" xml:id="pb.001"/>
+			// <pb facs="#WIKI00338-001" n="1" xml:id="pb.001"/>
 			$pbDOM = $DOM->createElement('pb');
 			$pbDOM->setAttribute('facs', '#'.$facsFilename);
 			$pbDOM->setAttribute('n', $facsSurfacePage);
@@ -1016,38 +1001,40 @@ if($divDOM->getElementsByTagName('pb')->length == 0) {
 	common_logNotice('We have to create back');
 }
 
-// počisti okolico <pb>
-$PDOMs = $DOM->getElementsByTagName('body')->item(0)->getElementsByTagName('pb'); // da se izognemo čiščenju pb v back
-for($a = 0; $a < $PDOMs->length; $a++) {
-	if($a < 0) {$a = 0;}
-	$PDOM = $PDOMs->item($a);
+// clear vicinity of pb
+$changesWereMade = true;
+for($i = 1; ($i < 100) && $changesWereMade; $i++) {
+	$changesWereMade = false;
 
-	// odstrani <lb />, če sledi <pb>
-	if($PDOM->nextSibling && ($PDOM->nextSibling->nodeName == 'lb')) {
-		$PDOM->parentNode->removeChild($PDOM->nextSibling);
-	}
-
-	// če je <pb> zadnji element <div>, ga premakni ven
-	if(!$PDOM->nextSibling && ($PDOM->parentNode->nodeName == 'div')) {
-		if($PDOM->parentNode->nextSibling) {
-			$PDOM->parentNode->parentNode->insertBefore($PDOM, $PDOM->parentNode->nextSibling);
-		} else {
-			$PDOM->parentNode->parentNode->appendChild($PDOM);
+	$pbDOMs = $DOM->getElementsByTagName('body')->item(0)->getElementsByTagName('pb'); // to exclude back//pb
+	foreach($pbDOMs as $pbDOM) {
+		Converter::trimDOMElement($pbDOM->parentNode, false);
+		
+		// remove lb if it is located after pb
+		if($pbDOM->nextSibling && ($pbDOM->nextSibling->nodeName == 'lb')) {
+			$pbDOM->parentNode->removeChild($pbDOM->nextSibling);
+			$changesWereMade = true;
 		}
-		$a -= 4; // če imamo štiri zaporedne pb, to zagotovi, da prestavimo vse
-	}
 
-	// če je <pb> edini otrok <l>, zamenjaj <l> s <pb>
-	if(($PDOM->parentNode->nodeName == 'l') && ($PDOM->parentNode->childNodes->length == 1)) {
-		$PDOM->parentNode->parentNode->replaceChild($PDOM, $PDOM->parentNode);
-	}
-	// če je <pb> edini otrok <lg>, zamenjaj <lg> s <pb>
-	if(($PDOM->parentNode->nodeName == 'lg') && ($PDOM->parentNode->childNodes->length == 1)) {
-		$PDOM->parentNode->parentNode->replaceChild($PDOM, $PDOM->parentNode);
+		// if pb is the last element of div or p, move it after the parent element
+		if(!$pbDOM->nextSibling && (($pbDOM->parentNode->nodeName == 'div') || ($pbDOM->parentNode->nodeName == 'p'))) {
+			if($pbDOM->parentNode->nextSibling) {
+				$pbDOM->parentNode->parentNode->insertBefore($pbDOM, $pbDOM->parentNode->nextSibling);
+			} else {
+				$pbDOM->parentNode->parentNode->appendChild($pbDOM);
+			}
+			$changesWereMade = true;
+		}
+
+		// if pb is the only child of l or lg, replace parent element with pb
+		if((($pbDOM->parentNode->nodeName == 'l') || ($pbDOM->parentNode->nodeName == 'lg')) && ($pbDOM->parentNode->childNodes->length == 1)) {
+			$pbDOM->parentNode->parentNode->replaceChild($pbDOM, $pbDOM->parentNode);
+			$changesWereMade = true;
+		}
 	}
 }
 
-// preveri število <pb> in <surface>
+// count number of pb and surface elements
 if(($DOM->getElementsByTagName('body')->item(0)->getElementsByTagName('pb')->length == 0) && $selectedWork->hasFacsimile()) {
 	common_logNotice('There are no pb');
 } elseif(($DOM->getElementsByTagName('pb')->length != $DOM->getElementsByTagName('surface')->length) && $selectedWork->hasFacsimile()) {
@@ -1059,7 +1046,7 @@ foreach($DOM->getElementsByTagName('pb') as $pbDOM) {
 	}
 }
 
-// zapiše povezave do faksimilov
+// write links to facsimiles (currently used only for getTextDataFromFile module)
 $facsURLs = array_merge(array(isset($selectedWorkData['dlib-urn'])?$selectedWorkData['dlib-urn']:''), (!empty($selectedWorkData['faksimili'])?$selectedWorkData['faksimili']:array()));
 $sourcePubPlaceDOM = $DOM->getElementsByTagName('sourceDesc')->item(0)->getElementsByTagName('pubPlace')->item(0);
 if(empty($selectedWorkData['dlib-urn']) && empty($selectedWorkData['faksimili']) && !$selectedWork->isDjvu() && $settings['save-xml']) {
@@ -1091,7 +1078,6 @@ foreach($facsURLs as $facsURL) {
 	$facsLastHeader = $facsHeader;
 }
 
-##################### DO TUKAJ NEPREGLEDANO #####################
 
 $skipElementsForNumbering = array('p','lb');
 $usedElementsBody = array();

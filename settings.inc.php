@@ -30,7 +30,7 @@ $settings['notices-filename'] = 'CONVERTLOG';
 $settings['notices-print-only-errors'] = true;
 
 $settings['facsimile-url-prefix'] = '';
-$settings['tei-enable-anchor-references'] = false;
+$settings['tei-enable-anchor-references'] = true;
 $settings['relaxng-schema'] = false; // path to file; set to false to skip validation
 
 
@@ -43,6 +43,9 @@ $settings['metadata'] = array( // set to false to remove parent element; where a
 	'translation-translator' => array('en' => 'Translator'), // array; content of teiHeader/fileDesc/sourceDesc/bibl/respStmt
 	'pubPlace' => false, // string; content of text/front/docImprint/pubPlace
 	'facsimiles-heading' => 'Facsimiles',
+	'facsimile-surface-desc-facsimile' => 'Facsimile',
+	'facsimile-surface-desc-cover' => 'cover',
+	'facsimile-surface-desc-page' => 'page',
 	'signature-prefix' => 'WIKI%05d', // string in PHP sprintf format
 );
 
@@ -54,6 +57,8 @@ $settings['author-template-firstname-parameter'] = false;
 $settings['author-template-lastname-parameter'] = false;
 $settings['author-fullname-pattern'] = '{firstname} {lastname}'; // you can use labels {firstname} and {lastname}
 
+$settings['unclear-template'] = false; // template for unclear text should have the following syntax: {{unclear [ | transcript of barely readable text [ | transcript suggestion ] ] }}
+$settings['redaction-template'] = false; // template for redacted text should have the following syntax: {{redaction | old text | new text }}
 $settings['pagebreak-template'] = false;
 
 // text formatting templates should accept text as the first parameter

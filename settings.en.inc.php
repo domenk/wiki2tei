@@ -10,6 +10,8 @@ $settings['author-template-firstname-parameter'] = 'firstname';
 $settings['author-template-lastname-parameter'] = 'lastname';
 $settings['author-fullname-pattern'] = '{firstname} {lastname}';
 
+$settings['unclear-template'] = false;
+$settings['redaction-template'] = false;
 $settings['pagebreak-template'] = false;
 
 $settings['spaced-template'] = false;
