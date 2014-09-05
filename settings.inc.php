@@ -2,6 +2,7 @@
 
 $settings = array();
 
+$settings['content-language'] = 'en';
 $settings['timezone'] = 'Europe/London';
 $settings['facsimile-url-prefix'] = '';
 $settings['wiki-default-domain'] = 'en.wikisource.org';
@@ -30,30 +31,59 @@ $settings['notices-output'] = 'file'; // print | file | silent
 $settings['notices-filename'] = 'CONVERTLOG';
 $settings['notices-print-only-errors'] = true;
 
+$settings['tei-enable-anchor-references'] = false;
+
 
 // general metadata
-$settings['metadata'] = array( // where array is the metadata value, this array is of form lang_code => content
-	'principal' => '', // content of teiHeader/fileDesc/titleStmt/principal/name
-	'application' => array(), // additional content of teiHeader/encodingDesc/appInfo/application
-	'availability' => array( // content of teiHeader/fileDesc/publicationStmt/availability
-		'en' => 'This work is licensed under a [http://creativecommons.org/licenses/by-sa/4.0/ Creative Commons Attribution-ShareAlike 4.0 International License].',
-		'sl' => 'Besedilo je na razpolago pod dovoljenjem [http://creativecommons.org/licenses/by-sa/4.0/ Creative Commons Priznanje avtorstva-Deljenje pod enakimi pogoji 4.0 mednarodna licenca].',
-	),
-	'projectDesc' => '', // raw XML; content of teiHeader/encodingDesc/projectDesc
-	'translation-translator' => array( // content of teiHeader/fileDesc/sourceDesc/bibl/respStmt
-		'en' => 'Translator',
-		'sl' => 'Prevajalec',
-	),
-	'pubPlace' => '', // content of text/front/docImprint/pubPlace
-	'signature-prefix' => 'WIKI%05d', // PHP sprintf format
+$settings['metadata'] = array( // set to false to remove parent element; where array is the metadata value, this array is of form lang_code => content
+	'principal' => false, // string; content of teiHeader/fileDesc/titleStmt/principal/name
+	'application' => array(), // array; additional content of teiHeader/encodingDesc/appInfo/application
+	'availability' => array('en' => 'This work is licensed under a [http://creativecommons.org/licenses/by-sa/4.0/ Creative Commons Attribution-ShareAlike 4.0 International License].'), // array; content of teiHeader/fileDesc/publicationStmt/availability
+	'projectDesc' => false, // raw XML string; content of teiHeader/encodingDesc/projectDesc
+	'translation-translator' => array('en' => 'Translator'), // array; content of teiHeader/fileDesc/sourceDesc/bibl/respStmt
+	'pubPlace' => false, // string; content of text/front/docImprint/pubPlace
+	'facsimiles-heading' => 'Facsimiles',
+	'signature-prefix' => 'WIKI%05d', // string in PHP sprintf format
 );
 
 
 // metadata extraction from templates
-$settings['author-template'] = 'avtor';
-$settings['author-template-firstname-parameter'] = 'ime';
-$settings['author-template-lastname-parameter'] = 'priimek';
-$settings['author-fullname-pattern'] = '{lastname}, {firstname}'; // you can use labels {firstname} and {lastname}
+$settings['author-page-prefix'] = false;
+$settings['author-template'] = false;
+$settings['author-template-firstname-parameter'] = false;
+$settings['author-template-lastname-parameter'] = false;
+$settings['author-fullname-pattern'] = '{firstname} {lastname}'; // you can use labels {firstname} and {lastname}
+
+$settings['pagebreak-template'] = false;
+
+// text formatting templates should accept text as the first parameter
+$settings['spaced-template'] = false;
+$settings['gothic-template'] = false;
+$settings['cursive-template'] = false;
+
+$settings['templates-to-remove'] = array(); // template names or template name prefixes; first letter is case-insensitive, spaces and underscores are treated equal
+
+
+/***
+ * Structure of metadata templates array:
+ *
+ * metadataTemplates = array(templateName => array[] parameterWithMetadata)
+ * parameterWithMetadata = array(
+ * 	'metadata' => name of metadata,
+ * 	'parameter' => name of the template parameter in which metadata will be searched,
+ * 	'optional-templates' => array[] parameterTemplate; if this templates exist in the parameter, only data in them will be used,
+ * 	'required-templates' => array[] parameterTemplate; extract metadata only from this templates; if they do not exist, skip parameter
+ * )
+ * parameterTemplate = array(
+ * 	'template' => template name,
+ * 	'parameters' => array(parameter name => parameter content, ...); array of parameters and their content that should match (parameter content can be specified as an array; if that's the case, any value in the array should match),
+ * 	'metadata-parameter' => name of this template parameter that contains metadata,
+ * )
+ */
+$settings['metadata-templates'] = array();
+
+
+include('settings.en.inc.php');
 
 
 // taxonomy

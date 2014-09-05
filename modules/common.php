@@ -96,11 +96,11 @@ function language_getDocumentLanguage($file, $currentLanguage) {
 	}
 }
 
-function common_getTaxonomyByMetadataCategories($taxonomyCategories, $taxonomyParentName=false) {
+function metadata_getTaxonomyByMetadataCategories($taxonomyCategories, $taxonomyParentName=false) {
 	$taxonomyByMetadataCategories = array();
 	foreach($taxonomyCategories as $taxonomyCategory) {
 		if(!empty($taxonomyCategory['categories'])) {
-			$newTaxonomyByMetadataCategories = common_getTaxonomyByMetadataCategories($taxonomyCategory['categories'], $taxonomyCategory['id']);
+			$newTaxonomyByMetadataCategories = metadata_getTaxonomyByMetadataCategories($taxonomyCategory['categories'], (!empty($taxonomyParentName)?$taxonomyParentName:$taxonomyCategory['id']));
 			foreach($newTaxonomyByMetadataCategories as $newMetadataCategory => $newTaxonomyMetadataCategory) {
 				foreach($newTaxonomyMetadataCategory as $metadataCategory) {
 					$taxonomyByMetadataCategories[$newMetadataCategory][] = $metadataCategory;
@@ -113,4 +113,39 @@ function common_getTaxonomyByMetadataCategories($taxonomyCategories, $taxonomyPa
 		}
 	}
 	return $taxonomyByMetadataCategories;
+}
+
+function metadata_getParentTaxonomyByTaxonomy($taxonomyCategories, $taxonomyParentName=false) {
+	$parentTaxonomyByTaxonomy = array();
+	$taxonomyByMetadataCategories = array();
+	foreach($taxonomyCategories as $taxonomyCategory) {
+		if(!empty($taxonomyCategory['categories'])) {
+			$taxonomyByMetadataCategories = array_merge($taxonomyByMetadataCategories, metadata_getParentTaxonomyByTaxonomy($taxonomyCategory['categories'], (!empty($taxonomyParentName)?$taxonomyParentName:$taxonomyCategory['id'])));
+		} elseif(!empty($taxonomyParentName)) {
+			$taxonomyByMetadataCategories[$taxonomyCategory['id']] = $taxonomyParentName;
+		}
+	}
+	return $taxonomyByMetadataCategories;
+}
+
+function metadata_extractValuesOfMatchingTemplates($wikitext, $templates) {
+	$values = array();
+	foreach($templates as $template) {
+		$wikitextTemp = $wikitext;
+		do {
+			$templateParsedParameters = Converter::parseWikiTemplate($wikitextTemp, $template['template'], $wikitextTemp);
+			if(isset($template['parameters'])) {
+				foreach($template['parameters'] as $templateRequiredParameterName => $templateRequiredParameterValue) {
+					if(!isset($templateParsedParameters[$templateRequiredParameterName]) || !in_array($templateParsedParameters[$templateRequiredParameterName], (array) $templateRequiredParameterValue)) {
+						continue 2;
+					}
+				}
+			}
+			if(isset($templateParsedParameters[$template['metadata-parameter']])) {
+				$values[] = $templateParsedParameters[$template['metadata-parameter']];
+			}
+		} while(!empty($templateParsedParameters));
+	}
+
+	return $values;
 }

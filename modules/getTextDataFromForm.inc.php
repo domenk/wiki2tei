@@ -44,11 +44,11 @@ if(!empty($_POST['url'])) {
 		}
 	}
 
-	$metadataFormCategories = (!empty($_POST['categories'])&&is_array($_POST['categories'])?$_POST['categories']:array());
-	$metadataFormCategories = array_map('trim', $metadataFormCategories);
+	$parentTaxonomyByTaxonomy = metadata_getParentTaxonomyByTaxonomy($settings['taxonomy-categories']);
+	$metadataFormCategories = array_map('trim', (!empty($_POST['categories'])&&is_array($_POST['categories'])?$_POST['categories']:array()));
 	foreach($metadataFormCategories as $metadataFormCategory) {
-		if(!empty($metadataFormCategory)) {
-			$selectedWork->addCategories($metadataFormCategory);
+		if(!empty($metadataFormCategory) && isset($parentTaxonomyByTaxonomy[$metadataFormCategory])) {
+			$selectedWork->addCategory($metadataFormCategory, $parentTaxonomyByTaxonomy[$metadataFormCategory]);
 		}
 	}
 

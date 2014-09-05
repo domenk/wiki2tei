@@ -26,23 +26,34 @@ require('modules/getMetadataFromWikitext.inc.php');
 $siteinfo = Wiki::fetchSiteinfo();
 
 
-Converter::addReplacePair('/{{\s*[Nn]ejasno\s*}}/sU', '<gap reason="illegible" />');
+Converter::addReplacePair('/{{\s*[Nn]ejasno\s*}}/sU', '<gap reason="illegible" />'); ### generalise
 Converter::addReplacePair('/{{\s*[Nn]ejasno\s*\|([^\|]*)}}/sU', '<unclear>$1</unclear>');
 Converter::addReplacePair('/{{\s*[Nn]ejasno\s*\|([^\|]*)\|([^\|]*)}}/sU', '<choice><unclear>$1</unclear><corr>$2</corr></choice>');
 Converter::addReplacePair('/{{\s*[Rr]edakcija\s*\|([^\|]*)\|([^\|]*)}}/sU', '<choice><sic>$1</sic><corr>$2</corr></choice>');
-Converter::addReplacePair('/\n{{\s*[Pp]relom[ _]strani\s*}}\n/s', "\n\n{{prelom strani}}\n\n");
-Converter::addReplacePair('/{{\s*[Pp]relom[ _]strani\s*}}/s', '___TEI_PAGEBREAK_MANUAL___');
-Converter::addReplacePair('/{{\s*[Rr]azprto\s*\|(.*)}}/sU', '___TEI_SPACED_NEW______$1___TEI_SPACED_END______');
-Converter::addReplacePair('/{{\s*[Gg]otica\s*\|(.*)}}/sU', '___TEI_GOTHIC_NEW______$1___TEI_GOTHIC_END______');
-Converter::addReplacePair('/{{\s*[Pp]isano\s*\|(.*)}}/sU', '___TEI_CURSIVE_NEW_____$1___TEI_CURSIVE_END_____');
 
-Converter::addReplacePair('/{{\s*[Rr]imska poglavja(.*)}}/sU', '');
-Converter::addReplacePair('/{{\s*[Pp]oglavja(.*)}}/sU', '');
-Converter::addReplacePair('/{{\s*[Nn]eoštevilčena[ _]poglavja(.*)[\|]?(.*)}}/sU', '');
-Converter::addReplacePair('/{{\s*[Ww]ikipedija(.*)[\|]?(.*)}}/sU', '');
-Converter::addReplacePair('/{{\s*[Dd]rugipomeni(.*)[\|]?(.*)}}/sU', '');
-Converter::addReplacePair('/\[\[\s*(Slika|Image|File|Datoteka):(.*)\]\]/sUi', function($matches) {global $selectedWork; return Converter::parseImage($matches[2], $selectedWork->getPrefix().'/images');});
+// mark page breaks
+if(!empty($settings['pagebreak-template'])) {
+	Converter::addReplacePair('/{{\s*'.Wiki::getTemplateNamePattern($settings['pagebreak-template']).'(.*)}}/sU', '___TEI_PAGEBREAK_MANUAL___');
+	Converter::addReplacePair('/\n___TEI_PAGEBREAK_MANUAL___\n/sU', "\n\n___TEI_PAGEBREAK_MANUAL___\n\n");
+}
 
+// replace text formatting templates
+$textFormattingTemplates = array('spaced' => 'SPACED', 'gothic' => 'GOTHIC', 'cursive' => 'CURSIVE');
+foreach($textFormattingTemplates as $textFormattingName => $textFormattingParserLabel) {
+	if(!empty($settings[$textFormattingName.'-template'])) {
+		Converter::addReplacePair('/{{\s*'.Wiki::getTemplateNamePattern($settings[$textFormattingName.'-template']).'\s*\|(.*)}}/sU', str_pad('___TEI_'.$textFormattingParserLabel.'_NEW___', 23, '_').'$1'.str_pad('___TEI_'.$textFormattingParserLabel.'_END___', 23, '_'));
+	}
+}
+
+// remove unnecessary templates
+foreach($settings['templates-to-remove'] as $templateNamePrefix) {
+	Converter::addReplacePair('/{{\s*'.Wiki::getTemplateNamePattern($templateNamePrefix).'(.*)}}/sU', '');
+}
+
+// parse image tags
+Converter::addReplacePair('/\[\[\s*('.implode('|', array_map('preg_quote', Wiki::getImageNamespaces())).'):(.*)\]\]/sUi', function($matches) {global $selectedWork; return Converter::parseImage($matches[2], $selectedWork->getPrefix().'/images');});
+
+// mark other syntax
 Converter::addReplacePair('/\[\[([^\|]*)\]\]/sU', '$1');
 Converter::addReplacePair('/\[\[(.*)\|(.*)\]\]/sU', '$2');
 Converter::addReplacePair('/__TOC__/sU', '');
@@ -56,25 +67,23 @@ Converter::addReplacePair('/<\s*sub\s*>(.*)<\/sub\s*>/sUi', '<hi rend="sub">$1</
 Converter::addReplacePair('/\n{\|(.*)\n\|}\n/sU', function($matches) {return Converter::parseTable($matches[1]);});
 Converter::addReplacePair('/\'\'\'(.*)\'\'\'/U', '___TEI_BOLD_NEW________$1___TEI_BOLD_END________');
 Converter::addReplacePair('/\'\'(.*)\'\'/U', '___TEI_ITALIC_NEW______$1___TEI_ITALIC_END______');
-Converter::addReplacePair('/\'\'\'(.*)$/mU', '___TEI_BOLD_NEW________$1___TEI_BOLD_END________'); // !!! lahko se zgodi, da je vmes kakšen element
+Converter::addReplacePair('/\'\'\'(.*)$/mU', '___TEI_BOLD_NEW________$1___TEI_BOLD_END________');
 Converter::addReplacePair('/\'\'(.*)$/mU', '___TEI_ITALIC_NEW______$1___TEI_ITALIC_END______');
 
 
 $file = Converter::normaliseWikiText($file);
 
 $file = preg_replace_callback('/<\s*nowiki.*?>(.*?)<\/nowiki\s*>/si', function($matches) {return '<nowiki>'.base64_encode($matches[1]).'</nowiki>';}, $file);
-$file = preg_replace('/\[\[\s*[Kk]ategorija\s*:(.*?)\]\]/', '', $file);
+$file = preg_replace('/\[\[\s*('.implode('|', array_map('preg_quote', Wiki::getCategoryNamespaces())).'):(.*)\]\]/Ui', '', $file);
 
 // some manual checks
-if(stristr($file, '{{nejasno')) {common_logNotice('Contains {{nejasno');}
 if(strstr($file, '#')) {common_logNotice('Contains #');}
-if(strstr($file, '&shy;')) {common_logNotice('Contains &shy;');}
 
 $converterDocument = new ConverterDocument($file);
 $DOM = Converter::convertWikiToDOMDocument($file);
 $DOM = Converter::removeComments($DOM);
 
-##############################################################
+
 
 // če se za <references> nahaja <ref>, lahko pride do težav, zato zadaj vstavimo prazno vrstico  ### je to še vedno potrebno?
 foreach($DOM->getElementsByTagName('references') as $referencesDOM) {
@@ -111,7 +120,7 @@ for($a = 0; $a < $refDOMs->length; $a++) {
 	}
 	$noteDOM->appendChild($DOM->createTextNode('___TEI_LEVEL_LOWER_____'));
 
-	if(true || $selectedWork->isDjvu()) { // force internal references
+	if(!$settings['tei-enable-anchor-references'] || $selectedWork->isDjvu()) {
 		$docRefs[$refGroup][$docRefNum] = 1;
 		$refDOM->parentNode->replaceChild($noteDOM, $refDOM);
 		$a--;
@@ -144,18 +153,21 @@ while($DOM->getElementsByTagName('references')->length) {
 
 // check if we have any ref that has not been written
 foreach($docRefLines as $num => $docRefLine) {
-	if(!empty($docRefLine[1]) || !empty($docRefLine['editorial'])) {common_logNotice('Some ref elements were not written (line '.$num.')');}
+	if(!empty($docRefLine[1]) || !empty($docRefLine['editorial'])) {
+		common_logNotice('Some ref elements were not written (line '.$num.')');
+	}
 }
 
+// element processing
 $excludedElements = array('ref','note','lb','nowiki','sub','sup','ins','del','u','s');
-while($DOM->getElementsByTagName('p')->length) {$Pelem = $DOM->getElementsByTagName('p')->item(0); Converter::doBasicElementProcessing($Pelem);}
-while($DOM->getElementsByTagName('div')->length) {$Pelem = $DOM->getElementsByTagName('div')->item(0); Converter::doBasicElementProcessing($Pelem);}
-while($DOM->getElementsByTagName('center')->length) {$Pelem = $DOM->getElementsByTagName('center')->item(0); Converter::doBasicElementProcessing($Pelem);}
-while($DOM->getElementsByTagName('b')->length) {$Pelem = $DOM->getElementsByTagName('b')->item(0); Converter::doBasicElementProcessing($Pelem);}
-while($DOM->getElementsByTagName('i')->length) {$Pelem = $DOM->getElementsByTagName('i')->item(0); Converter::doBasicElementProcessing($Pelem);}
-while($DOM->getElementsByTagName('small')->length) {$Pelem = $DOM->getElementsByTagName('small')->item(0); Converter::doBasicElementProcessing($Pelem);}
-while($DOM->getElementsByTagName('big')->length) {$Pelem = $DOM->getElementsByTagName('big')->item(0); Converter::doBasicElementProcessing($Pelem);}
-while($DOM->getElementsByTagName('blockquote')->length) {$Pelem = $DOM->getElementsByTagName('blockquote')->item(0); Converter::doBasicElementProcessing($Pelem);}
+$elementsForBasicProcessing = array('p','div','center','b','i','small','big','blockquote');
+foreach($elementsForBasicProcessing as $elementForBasicProcessing) {
+	while($DOM->getElementsByTagName($elementForBasicProcessing)->length) {
+		$elementDOM = $DOM->getElementsByTagName($elementForBasicProcessing)->item(0);
+		Converter::doBasicElementProcessing($elementDOM);
+	}
+}
+
 while($DOM->getElementsByTagName('br')->length) {
 	$brDOM = $DOM->getElementsByTagName('br')->item(0);
 	$brDOM->parentNode->replaceChild($DOM->createTextNode('___TEI_LINE_BREAK______'), $brDOM);
@@ -173,7 +185,7 @@ while($DOM->getElementsByTagName('poem')->length) {
 			$poemText = str_replace("\n\n", "___TEI_PARAGRAPH_END______TEI_PARAGRAPH_NEW___\n", $poemText);
 			$poemText = str_replace("\n", "\n___TEI_STYLE_STOP______<TEI_LG_BREAK />___TEI_STYLE_RESTART___\n", $poemText);
 			$poemDOM->replaceChild($DOM->createTextNode($poemText), $poemDOMchild);
-		} elseif(!in_array($poemDOMchild->nodeName, $excludedElements)) { // !!! ne obdela, če so prelomi v sub, sup, ins ...
+		} elseif(!in_array($poemDOMchild->nodeName, $excludedElements)) { // !!! it does not parse if there are new lines in sub, sup, ins ...
 			common_logNotice('Child of poem is some unexcluded element (element '.$poemDOMchild->nodeName.')');
 		}
 	}
@@ -207,7 +219,8 @@ $file = str_replace('___TEI_LINE_BREAK______', "\n\n", $file);
 $file = str_replace("\n\n\n\n", "\n\n<TEI_BIGGAP_NONSTANDARD />\n\n", trim($file));
 while(strstr($file, "\n\n\n")) {$file = str_replace("\n\n\n", "\n\n", $file);}
 
-/******* PROCESS EVERY PAGE *******/
+
+// process every page
 if($selectedWork->isDjvu()) {
 	$origFile = explode('___TEI_FACSIMILE_PAGE_', $file);
 	unset($origFile[0]);
@@ -218,15 +231,18 @@ if($selectedWork->isDjvu()) {
 
 foreach($origFile as $fileNum => $file) {
 	foreach(Converter::getReplacePairs() as $replace) {
-		for($i = 1; $i <= 2; $i++) {
-			$file = (is_string($replace[1])?preg_replace($replace[0], $replace[1], "\n".trim($file)."\n"):preg_replace_callback($replace[0], $replace[1], "\n".trim($file)."\n"));
+		if(is_string($replace[1])) {
+			$file = preg_replace($replace[0], $replace[1], "\n".trim($file)."\n");
+		} else {
+			$file = preg_replace_callback($replace[0], $replace[1], "\n".trim($file)."\n");
 		}
 	}
 	$origFile[$fileNum] = $file;
 }
 $file = implode('', $origFile);
-/******* PROCESS EVERY PAGE - END *******/
 
+
+// process sections
 $file = explode('<div1 ', $file);
 foreach($file as $num1 => $chapter1) {
 	if(strstr($file[$num1], '<div2 ')) {
@@ -264,6 +280,7 @@ $file = implode('<div1 ', $file);
 $file = str_replace(array('<div1 ','<div2 ','<div3 ','<div4 '), '<div ', $file);
 $file = str_replace(array('</div1>','</div2>','</div3>','</div4>'), '</div>', $file);
 
+// parse text
 $file = str_replace("\n\n", '___TEI_PARAGRAPH_NEW___', $file);
 $file = preg_replace('/<head(.*)>/sU', '<head$1>___TEI_PARAGRAPH_NEW___', $file);
 $file = preg_replace('/<div(.*)>/sU', '___TEI_PARAGRAPH_END___<div$1>', $file);
@@ -327,7 +344,7 @@ for($i = 0; $i < $filestrlen; $i++) {
 		$appendToNewFile = (!empty($paraOpened[$parserLevel])?str_repeat('</hi>', count($STYLEopened[$parserLevel])).$paraCloseTag[$paraTypeTemp]:'');
 		$paraOpened[$parserLevel] = false;
 	} elseif($substr == '___TEI_POEM_NEW________') {
-		// !!! preveri, če se ohrani postavitev poem, če je <center><poem>
+		// !!! preveri, če se ohrani postavitev poem, če je <center><poem> ###
 		$appendToNewFile = ($paraOpened[$parserLevel]?str_repeat('</hi>', count($STYLEopened[$parserLevel])).$paraCloseTag[$paraType[$parserLevel]]:'').$paraOpenTag['poem'];
 		$paraType[$parserLevel] = 'p';
 		$poemOpened[$parserLevel] = true;
@@ -343,12 +360,12 @@ for($i = 0; $i < $filestrlen; $i++) {
 		$appendToNewFile = $styleOpenTags;
 	} elseif($substr == '___TEI_STYLE_STOP______') {
 		$appendToNewFile = str_repeat('</hi>', count($STYLEopened[$parserLevel]));
-	} elseif(in_array($substr, array_keys($hiStartTEI))) { // kateri koli od slogov - začetek
+	} elseif(in_array($substr, array_keys($hiStartTEI))) { // any style - start
 		$HIcurrent = $hiStartTEI[$substr];
 		$HIopened = array_search($HIcurrent, $STYLEopened[$parserLevel]);
 		$appendToNewFile = ($HIopened!==false&&!empty($paraOpened[$parserLevel])?'':$hiOpenTag[$HIcurrent]);
 		if($HIopened === false) {$STYLEopened[$parserLevel][] = $HIcurrent;}
-	} elseif(in_array($substr, array_keys($hiEndTEI))) { // kateri koli od slogov - konec
+	} elseif(in_array($substr, array_keys($hiEndTEI))) { // any style - end
 		$HIcurrent = $hiEndTEI[$substr];
 		$HIopened = array_search($HIcurrent, $STYLEopened[$parserLevel]);
 		$appendToNewFile = ($HIopened!==false&&$paraOpened[$parserLevel]?'</hi>':'');
@@ -378,7 +395,7 @@ $file = $fileNew;
 // replace ___TEI_FACSIMILE_PAGE_***___ with references to page facsimile
 $documentHasManualPageBreaks = (strstr($file, '___TEI_PAGEBREAK_MANUAL___') !== false);
 $file = str_replace('___TEI_PAGEBREAK_MANUAL___', '<pb />', $file);
-$file = preg_replace_callback('/___TEI_FACSIMILE_PAGE_(\d+)___/', function($matches) {return '<pb page="'.$matches[1].'" />';}, $file);
+$file = preg_replace('/___TEI_FACSIMILE_PAGE_(\d+)___/', '<pb page="$1" />', $file);
 
 
 // it should read: <TEI xmlns="http://www.tei-c.org/ns/1.0" xml:lang="en"> (this is solved below)
@@ -419,7 +436,7 @@ $file = '<TEI xml:lang="'.$siteinfo['language'].'">
 			<appInfo>
 				<application version="0.1" ident="wiki2tei">
 					<label xml:lang="en">Converter from Wikisource MediaWiki format to TEI P5</label>
-					<p xml:lang="en">Converter for (primarily) the <ref target="http://sl.wikisource.org/">Wikivir Slovene library</ref> into <ref target="http://www.tei-c.org/">TEI P5</ref>.</p>
+					<p xml:lang="en">Converter for the <ref target="http://www.wikisource.org/">Wikisource library</ref> into <ref target="http://www.tei-c.org/">TEI P5</ref>.</p>
 					<p xml:lang="en">Source code can be found on <ref target="http://github.com/domenk/wiki2tei">Github</ref>.</p>
 				</application>
 			</appInfo>
@@ -931,14 +948,14 @@ for($i = $metadataElementsDOM->length-1; $i >= 0; $i--) {
 
 ##################### OD TUKAJ NAPREJ NEPREGLEDANO #####################
 
-// pripravi <back>, v katerega gredo <surface>, ki nimajo svojega <pb>
+// prepare back for surfaces that do not have pb
 $divDOM = $DOM->getElementsByTagName('text')->item(0)->appendChild($DOM->createElement('back'))->appendChild($DOM->createElement('div'));
 $headDOM = $DOM->createElement('head');
-$headDOM->appendChild($DOM->createTextNode('Faksimili'));
+$headDOM->appendChild($DOM->createTextNode($settings['metadata']['facsimiles-heading']));
 $divDOM->appendChild($headDOM);
 
-// zapiše faksimile
-$facsimileList = array(); // seznam faksimilov v <surface>
+// writes facsimiles
+$facsimileList = array(); // list of facsimiles in surface
 $facsDOM = $DOM->getElementsByTagName('facsimile')->item(0);
 $facsDOM->setAttribute('xml:id', $selectedWork->getPrefix().'-facs');
 $deloNaslovCleanSC = common_replaceSpecialCharacters($selectedWork->getNormalisedTitle()); ### je to sploh potrebno?
@@ -966,7 +983,7 @@ if(file_exists($facsDir)) {
 		$surfaceDOM->appendChild($descDOM);
 
 		foreach(array('orig','medium','small','thumb') as $graphicType) {
-			// <graphic n="thumb" url="http://nl.ijs.si/imp/wikivir/facs/WIKI0100/WIKI0100-001_t.jpg"/>
+			// <graphic n="thumb" url="facs/WIKI0100/WIKI0100-001_t.jpg"/>
 			$graphicDOM = $DOM->createElement('graphic');
 			$graphicDOM->setAttribute('n', $graphicType);
 			$graphicDOM->setAttribute('url', $settings['facsimile-url-prefix'].$selectedWork->getPrefix().'/'.($graphicType=='orig'?$facsFile:$facsFilename.'_'.mb_substr($graphicType, 0, 1).'.jpg'));
@@ -974,7 +991,7 @@ if(file_exists($facsDir)) {
 		}
 
 		if(!$DOM->getElementById('pb.'.sprintf('%03d', $facsSurfacePage)) || ($facsSurfacePage == 0)) {
-			// <pb facs="#WIKI0016-001" n="1" xml:id="pb.001"/>
+			// <pb facs="#WIKI0100-001" n="1" xml:id="pb.001"/>
 			$pbDOM = $DOM->createElement('pb');
 			$pbDOM->setAttribute('facs', '#'.$facsFilename);
 			$pbDOM->setAttribute('n', $facsSurfacePage);

@@ -1,9 +1,9 @@
 <?php
 include('settings.inc.php');
 
-function form_printCategoriesElementOptions($categories) {
+function form_printCategoriesElementOptions($categories, $language='sl') {
 	foreach($categories as $category) {
-		$categoryName = (isset($category['desc']['sl'])?$category['desc']['sl']:$category['id']);
+		$categoryName = (isset($category['desc'][$language])?$category['desc'][$language]:$category['id']);
 		if(!empty($category['categories'])) {
 			print '<optgroup label="'.htmlspecialchars($categoryName).'">';
 			form_printCategoriesElementOptions($category['categories']);
@@ -37,7 +37,7 @@ form.pretvornik {margin-bottom: 40px;}
 <form action="parse.php" method="post" class="pretvornik">
 <div class="url-naslov">
 	<div class="url-naslov-label"><b>URL-naslov besedila:</b></div>
-	<div><input type="text" name="url" size="60" /> <input type="submit" value="Pretvori" /></div>
+	<div><input type="text" name="url" size="60" /> <input type="submit" value="Pretvori" /> <input type="reset" value="Ponastavi" /></div>
 	<div><small>Naslov naj bo oblike <?=htmlspecialchars($settings['wiki-url-prefix'])?>Naslov_dela.</small></div>
 </div>
 
@@ -70,17 +70,8 @@ form.pretvornik {margin-bottom: 40px;}
 			</table>
 		</td>
 	</tr>
-	<tr><td><input type="reset" value="Ponastavi" /></td><td></td></tr>
 </table>
 </form>
-
-<?php /*
-<hr />
-
-<div class="opis">
-	<p>Pretvornik je v preizkusni dobi.</p>
-</div>
-*/ ?>
 
 </body>
 </html>

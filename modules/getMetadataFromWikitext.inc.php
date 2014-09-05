@@ -9,34 +9,25 @@ $metadata = array(
 	'translator' => array(),
 );
 
-$templateNaslovMP = Converter::parseWikiTemplate($file, 'naslov-mp', $file);
-$templateNaslov = Converter::parseWikiTemplate($file, 'naslov', $file);
-
-### remove formatting from metadata (e.g. '')
-
-$metadataTemplateParameters = array(
-	'title' => array('parameter' => 'naslov', 'mp' => 'naslov'),
-	'title-normalised' => array('parameter' => 'normaliziran naslov', 'mp' => 'naslov'),
-	'author' => array('parameter' => 'avtor', 'mp' => 'avtor'),
-	'year' => array('parameter' => 'izdano', 'mp' => 'leto', 'skip-if-no-mp' => true),
-	'publisher' => array('parameter' => 'izdano', 'mp' => array('založba','zalozba'), 'skip-if-no-mp' => true),
-	'translator' => array('parameter' => 'prevajalec', 'mp' => 'avtor'),
-);
-foreach($metadataTemplateParameters as $metadataParameter => $metadataTemplateParameter) {
-	if(!empty($templateNaslovMP[$metadataTemplateParameter['parameter']])) {
-		$templateNaslovMPParameter = $templateNaslovMP[$metadataTemplateParameter['parameter']];
-		do {
-			$templateNaslovMPParameterParse = Converter::parseWikiTemplate($templateNaslovMPParameter, 'mp', $templateNaslovMPParameter);
-			if(!empty($templateNaslovMPParameterParse) && in_array($templateNaslovMPParameterParse[1], (array) $metadataTemplateParameter['mp'])) {
-				$metadata[$metadataParameter][] = $templateNaslovMPParameterParse[2];
+foreach($settings['metadata-templates'] as $metadataTemplateName => $metadataTemplateMetadataEntries) {
+	$metadataTemplateParameters = Converter::parseWikiTemplate($file, $metadataTemplateName, $file);
+	foreach($metadataTemplateMetadataEntries as $metadataTemplateMetadataEntry) {
+		if(!empty($metadataTemplateParameters[$metadataTemplateMetadataEntry['parameter']])) {
+			$metadataTemplateParameterValue = $metadataTemplateParameters[$metadataTemplateMetadataEntry['parameter']];
+			if(!empty($metadataTemplateMetadataEntry['required-templates'])) {
+				$metadataTemplateMetadataValues = metadata_extractValuesOfMatchingTemplates($metadataTemplateParameterValue, $metadataTemplateMetadataEntry['required-templates']);
+				if(!empty($metadataTemplateMetadataValues)) {
+					$metadata[$metadataTemplateMetadataEntry['metadata']] = array_merge((array) $metadata[$metadataTemplateMetadataEntry['metadata']], $metadataTemplateMetadataValues);
+				}
+			} else {
+				$metadataTemplateMetadataValues = metadata_extractValuesOfMatchingTemplates($metadataTemplateParameterValue, (!empty($metadataTemplateMetadataEntry['optional-templates'])?$metadataTemplateMetadataEntry['optional-templates']:array()));
+				if(!empty($metadataTemplateMetadataValues)) {
+					$metadata[$metadataTemplateMetadataEntry['metadata']] = array_merge((array) $metadata[$metadataTemplateMetadataEntry['metadata']], $metadataTemplateMetadataValues);
+				} else {
+					$metadata[$metadataTemplateMetadataEntry['metadata']] = $metadataTemplateParameters[$metadataTemplateMetadataEntry['parameter']];
+				}
 			}
-		} while(!empty($templateNaslovMPParameterParse));
-
-		if(empty($metadata[$metadataParameter]) && empty($metadataTemplateParameter['skip-if-no-mp'])) {
-			$metadata[$metadataParameter] = $templateNaslovMP[$metadataTemplateParameter['parameter']];
 		}
-	} elseif(!empty($templateNaslov[$metadataTemplateParameter['parameter']]) && empty($metadataTemplateParameter['skip-if-no-mp'])) {
-		$metadata[$metadataParameter] = $templateNaslov[$metadataTemplateParameter['parameter']];
 	}
 }
 
@@ -44,6 +35,7 @@ if(is_array($metadata['title'])) {
 	$metadata['title'] = (!empty($metadata['title'])?$metadata['title'][0]:'');
 }
 
+// (text formatting in metadata is not removed)
 
 /*
 // extract data about facsimile (currently not used)
@@ -90,7 +82,7 @@ if(!$selectedWork->hasTranslator() && !empty($metadata['translator'])) {
 $workTaxonomyMetadata = array();
 
 $workCategories = Wiki::fetchPageCategoriesDeep(urldecode($selectedWork->getLink()));
-$taxonomyByMetadataCategories = common_getTaxonomyByMetadataCategories($settings['taxonomy-categories']);
+$taxonomyByMetadataCategories = metadata_getTaxonomyByMetadataCategories($settings['taxonomy-categories']);
 foreach($workCategories as $workCategory) {
 	$workCategoryNameParts = explode(':', $workCategory, 2);
 	$workCategoryName = $workCategoryNameParts[1];
@@ -107,9 +99,6 @@ foreach($workCategories as $workCategory) {
 	}
 }
 
-$workTaxonomy = array();
-foreach($workTaxonomyMetadata as $workTaxonomyMetadataEntry) {
-	$workTaxonomy[] = $workTaxonomyMetadataEntry[0];
+foreach($workTaxonomyMetadata as $workTaxonomyMetadataEntryParent => $workTaxonomyMetadataEntry) {
+	$selectedWork->addCategory($workTaxonomyMetadataEntry[0], $workTaxonomyMetadataEntryParent, false);
 }
-$workTaxonomy = array_unique($workTaxonomy);
-$selectedWork->addCategories($workTaxonomy);

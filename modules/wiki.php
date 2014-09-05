@@ -5,6 +5,8 @@ class Wiki {
 	const FALLBACK_LANGUAGE = 'en';
 	static protected $siteinfo = array();
 	static protected $redirectMagicWords = array();
+	static protected $categoryNamespaces = array();
+	static protected $imageNamespaces = array();
 
 	static public function getDomain() {
 		global $settings;
@@ -14,7 +16,7 @@ class Wiki {
 	static public function getAuthorFullName($author) {
 		global $settings;
 
-		$file = @common_fetchPageFromWiki($author);
+		$file = @common_fetchPageFromWiki((!empty($settings['author-page-prefix'])?$settings['author-page-prefix']:'').$author);
 		if($file === false) {
 			return $author;
 		}
@@ -72,6 +74,12 @@ class Wiki {
 				'sitename' => ($siteinfoElement&&$siteinfoElement->hasAttribute('sitename')?$siteinfoElement->getAttribute('sitename'):self::FALLBACK_SITENAME),
 				'language' => ($siteinfoElement&&$siteinfoElement->hasAttribute('lang')?$siteinfoElement->getAttribute('lang'):self::FALLBACK_LANGUAGE),
 			);
+			
+			global $settings;
+			$settingsFilename = 'settings.'.preg_replace('/[^A-Za-z_-]?/', '', self::$siteinfo[$wikiDomain]['language']).'.inc.php';
+			if(file_exists($settingsFilename)) {
+				include($settingsFilename);
+			}
 		}
 
 		return self::$siteinfo[$wikiDomain];
@@ -81,22 +89,61 @@ class Wiki {
 		$wikiDomain = self::getDomain();
 
 		if(!isset(self::$redirectMagicWords[$wikiDomain])) {
-			$redirectEntries = array('#REDIRECT');
-
-			$magicWordsExport = common_fetchContent('http://translatewiki.net/w/i.php?language='.urlencode($language).'&module=words&export=true&title=Special%3AAdvancedTranslate', true);
-			preg_match('/[\'"]redirect[\'"]\s*=&gt;\s*array\s*\((.*?)\)/', $magicWordsExport, $matches);
-			if(!empty($matches[1])) {
-				$redirectEntriesRaw = explode(',', $matches[1]);
-				unset($redirectEntriesRaw[0]);
-
-				foreach($redirectEntriesRaw as $redirectEntryRaw) {
-					$redirectEntries[] = trim($redirectEntryRaw, '\'" ');
-				}
-			}
-
-			self::$redirectMagicWords[$wikiDomain] = array_unique($redirectEntries);
+			$entries = array_merge(array('#REDIRECT'), self::getAdvancedTranslateData('words', 'redirect'));
+			self::$redirectMagicWords[$wikiDomain] = array_unique($entries);
 		}
 
 		return self::$redirectMagicWords[$wikiDomain];
+	}
+
+	static public function getCategoryNamespaces() {
+		$wikiDomain = self::getDomain();
+
+		if(!isset(self::$categoryNamespaces[$wikiDomain])) {
+			$entries = array_merge(array('Category'), self::getAdvancedTranslateData('namespace', 'NS_CATEGORY'));
+			self::$categoryNamespaces[$wikiDomain] = array_unique($entries);
+		}
+
+		return self::$categoryNamespaces[$wikiDomain];
+	}
+
+	static public function getImageNamespaces() {
+		$wikiDomain = self::getDomain();
+
+		if(!isset(self::$imageNamespaces[$wikiDomain])) {
+			$entries = array_merge(array('Image', 'File'), self::getAdvancedTranslateData('namespace', 'NS_FILE'), self::getAdvancedTranslateData('namespace', 'NS_MEDIA'));
+			self::$imageNamespaces[$wikiDomain] = array_unique($entries);
+		}
+
+		return self::$imageNamespaces[$wikiDomain];
+	}
+
+	static public function getTemplateNamePattern($templateName) {
+		$templateName = ltrim($templateName);
+		$templateNameFirstLetter = mb_substr($templateName, 0, 1);
+		$templateNamePattern = '['.mb_strtoupper($templateNameFirstLetter).$templateNameFirstLetter.']'.str_replace(' ', '[ _]', preg_quote(str_replace('_', ' ', mb_substr($templateName, 1))));
+		return $templateNamePattern;
+	}
+
+	static protected function getAdvancedTranslateData($module, $dataEntry) {
+		$entries = array();
+
+		$siteinfo = self::fetchSiteinfo();
+		$wikiExport = common_fetchContent('http://translatewiki.net/w/i.php?language='.urlencode($siteinfo['language']).'&module='.urlencode($module).'&export=true&title=Special%3AAdvancedTranslate', true);
+		preg_match('/\n\s*[\'"]?'.preg_quote($dataEntry).'[\'"]?\s*=&gt;\s*(.*?)\s*,\n/', $wikiExport, $matches);
+		if(!empty($matches[1])) {
+			if(preg_match('/array\s*\((.*)\)/', $matches[1], $matches2)) {
+				$entriesRaw = explode(',', $matches2[1]);
+				unset($entriesRaw[0]);
+			} else {
+				$entriesRaw = array($matches[1]);
+			}
+
+			foreach($entriesRaw as $entryRaw) {
+				$entries[] = trim($entryRaw, '\'" ');
+			}
+		}
+
+		return array_unique($entries);
 	}
 }

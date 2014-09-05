@@ -397,36 +397,44 @@ class Converter {
 	}
 
 	static public function appendMetadata($DOM, $metadata, $elementName, $parentElementDOM) {
-		$metadata = (array) $metadata;
-		foreach($metadata as $translationLanguage => $translationText) {
-			$translationDOM = $DOM->createElement($elementName);
-			if(is_string($translationLanguage)) {
-				$translationDOM->setAttribute('xml:lang', $translationLanguage);
-			}
-
-			$translationTextProcessed = preg_replace('/\[(http:\/\/[^\]]*?)\s(.*?)\]/', '||LINK:::$1:::$2||', $translationText);
-			$translationTextParts = explode('||', $translationTextProcessed);
-			foreach($translationTextParts as $translationTextPart) {
-				if(mb_substr($translationTextPart, 0, 7) == 'LINK:::') {
-					$translationTextPartParts = explode(':::', $translationTextPart);
-					$translationLinkDOM = $DOM->createElement('ref');
-					$translationLinkDOM->setAttribute('target', $translationTextPartParts[1]);
-					$translationLinkDOM->appendChild($DOM->createTextNode($translationTextPartParts[2]));
-					$translationDOM->appendChild($translationLinkDOM);
-				} else {
-					$translationDOM->appendChild($DOM->createTextNode($translationTextPart));
+		if($metadata === false) {
+			$parentElementDOM->parentNode->removeChild($parentElementDOM);
+		} else {
+			$metadata = (array) $metadata;
+			foreach($metadata as $translationLanguage => $translationText) {
+				$translationDOM = $DOM->createElement($elementName);
+				if(is_string($translationLanguage)) {
+					$translationDOM->setAttribute('xml:lang', $translationLanguage);
 				}
-			}
 
-			$parentElementDOM->appendChild($translationDOM);
+				$translationTextProcessed = preg_replace('/\[(http:\/\/[^\]]*?)\s(.*?)\]/', '||LINK:::$1:::$2||', $translationText);
+				$translationTextParts = explode('||', $translationTextProcessed);
+				foreach($translationTextParts as $translationTextPart) {
+					if(mb_substr($translationTextPart, 0, 7) == 'LINK:::') {
+						$translationTextPartParts = explode(':::', $translationTextPart);
+						$translationLinkDOM = $DOM->createElement('ref');
+						$translationLinkDOM->setAttribute('target', $translationTextPartParts[1]);
+						$translationLinkDOM->appendChild($DOM->createTextNode($translationTextPartParts[2]));
+						$translationDOM->appendChild($translationLinkDOM);
+					} else {
+						$translationDOM->appendChild($DOM->createTextNode($translationTextPart));
+					}
+				}
+
+				$parentElementDOM->appendChild($translationDOM);
+			}
 		}
 	}
 
 	static public function appendXMLMetadata($DOM, $metadata, $parentElementDOM) {
-		$DOMmetadata = new DOMDocument();
-		$DOMmetadata->loadXML('<xml>'.$metadata.'</xml>');
-		foreach($DOMmetadata->documentElement->childNodes as $metadataElementDOM) {
-			$parentElementDOM->appendChild($DOM->importNode($metadataElementDOM, true));
+		if($metadata === false) {
+			$parentElementDOM->parentNode->removeChild($parentElementDOM);
+		} else {
+			$DOMmetadata = new DOMDocument();
+			$DOMmetadata->loadXML('<xml>'.$metadata.'</xml>');
+			foreach($DOMmetadata->documentElement->childNodes as $metadataElementDOM) {
+				$parentElementDOM->appendChild($DOM->importNode($metadataElementDOM, true));
+			}
 		}
 	}
 }

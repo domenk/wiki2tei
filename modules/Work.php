@@ -100,9 +100,10 @@ class Work {
 	public function addYears($year) {
 		$this->years = $this->mergeArrays($this->years, $year);
 	}
-
-	public function addCategories($category) {
-		$this->categories = $this->mergeArrays($this->categories, $category);
+	
+	public function addCategory($category, $parentCategory=0, $forceReplace=true) {
+		if(!$forceReplace && !empty($parentCategory) && isset($this->categories[$parentCategory])) {return;}
+		$this->categories = $this->mergeArrays($this->categories, array($parentCategory => $category));
 	}
 
 	public function setPublisher($publisher) {
