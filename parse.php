@@ -2,7 +2,6 @@
 
 require('settings.inc.php');
 require('modules/common.php');
-require('modules/wiki.php');
 
 common_logNotice('', false);
 
