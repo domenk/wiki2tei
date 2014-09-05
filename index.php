@@ -1,12 +1,12 @@
 <?php
 include('settings.inc.php');
 
-function form_printCategoriesElementOptions($categories, $language='sl') {
+function form_printCategoriesElementOptions($categories, $language) {
 	foreach($categories as $category) {
 		$categoryName = (isset($category['desc'][$language])?$category['desc'][$language]:$category['id']);
 		if(!empty($category['categories'])) {
 			print '<optgroup label="'.htmlspecialchars($categoryName).'">';
-			form_printCategoriesElementOptions($category['categories']);
+			form_printCategoriesElementOptions($category['categories'], $language);
 			print '</optgroup>';
 		} else {
 			print '<option value="'.htmlspecialchars($category['id']).'">'.htmlspecialchars($categoryName).'</option>';
@@ -69,15 +69,13 @@ if(!isset($indexTranslations[$indexLanguage])) {$indexLanguage = 'en';}
 $indexTranslation = $indexTranslations[$indexLanguage];
 ?>
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?=hsc($indexLanguage)?>">
+<html lang="<?=hsc($indexLanguage)?>">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <title><?=hsc($indexTranslation['title'])?></title>
 <style type="text/css">
 body {margin: 15px; font: 82% Verdana, Arial, sans-serif;}
-th {text-align: left; padding: 4px 10px 4px 0px; vertical-align: top;}
-hr {height: 1px; border: none; background-color: gray;}
-form.converter {margin-bottom: 40px;}
+th {padding: 4px 10px 4px 0px; vertical-align: top; text-align: left;}
 .url-address {font-size: 115%; margin-bottom: 30px;}
 .url-address-label {margin-bottom: 5px;}
 .url-address input {font-size: 90%;}
@@ -97,7 +95,7 @@ ul.languages li:first-child:before {content: none;}
 
 <h1><?=$indexTranslation['main-heading-html']?></h1>
 
-<form action="parse.php" method="post" class="converter">
+<form action="parse.php" method="post">
 <div class="url-address">
 	<div class="url-address-label"><b><?=hsc($indexTranslation['form-url-address-label'])?></b></div>
 	<div><input type="text" name="url" size="60" /> <input type="submit" value="<?=hsc($indexTranslation['form-submit-button'])?>" /> <input type="reset" value="<?=hsc($indexTranslation['form-reset-button'])?>" /></div>
@@ -121,7 +119,7 @@ ul.languages li:first-child:before {content: none;}
 			<table>
 				<?php foreach($settings['taxonomy-categories'] as $workCategory) { ?>
 				<tr>
-					<td><?=htmlspecialchars(isset($workCategory['desc'][$indexLanguage])?$workCategory['desc'][$indexLanguage]:$workCategory['id'])?>:</td>
+					<td><?=hsc(isset($workCategory['desc'][$indexLanguage])?$workCategory['desc'][$indexLanguage]:$workCategory['id'])?>:</td>
 					<td>
 						<select name="categories[]">
 							<option value=""><?=hsc($indexTranslation['metadata-categories-unspecified-option'])?></option>

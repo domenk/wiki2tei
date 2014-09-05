@@ -38,7 +38,7 @@ if(is_array($metadata['title'])) {
 // (text formatting in metadata is not removed)
 
 /*
-// extract data about facsimile (currently not used)
+// extract data about facsimile (currently not used, specific for Slovene Wikisource)
 $facsimileMetadata = array();
 while(isset($templateNaslovMP['vir'])) {
 	$parse = Converter::parseWikiTemplate($templateNaslovMP['vir'], 'fc');
