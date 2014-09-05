@@ -76,7 +76,7 @@ $settings['metadata-templates'] = array(
 			'required-templates' => array(
 				array(
 					'template' => 'mp',
-					'parameters' => array(1 => array('založba','zalozba')),
+					'parameters' => array(1 => array('založba', 'zalozba')),
 					'metadata-parameter' => 2,
 				),
 			),

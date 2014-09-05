@@ -13,56 +13,119 @@ function form_printCategoriesElementOptions($categories, $language='sl') {
 		}
 	}
 }
+
+function hsc($string) {
+	return htmlspecialchars($string);
+}
+
+$indexTranslations = array(
+	'en' => array(
+		'language' => 'English',
+		'title' => 'Conversion of texts from Wikisource to TEI',
+		'main-heading-html' => 'Conversion of texts from <a href="http://'.hsc($settings['wiki-default-domain']).'/" target="_blank">Wikisource</a> to TEI',
+		'form-url-address-label' => 'URL address of text:',
+		'form-url-address-format' => 'Address should be of the following form: '.$settings['wiki-url-prefix'].'Text_title.',
+		'form-submit-button' => 'Convert',
+		'form-reset-button' => 'Reset',
+		'metadata-heading' => 'Metadata',
+		'metadata-description' => 'You are not required to enter metadata. Converter will try to extract missing information from metadata on Wikisource.',
+		'metadata-title-label' => 'Original title:',
+		'metadata-title-normalised-label' => 'Normalised title:',
+		'metadata-author-label' => 'Author:',
+		'metadata-year-label' => 'Year:',
+		'metadata-year-note' => '(separate multiple years with a comma)',
+		'metadata-publisher-label' => 'Publisher:',
+		'metadata-translator-label' => 'Translator:',
+		'metadata-signature-label' => 'Signature:',
+		'metadata-categories-label' => 'Categories:',
+		'metadata-categories-unspecified-option' => '(not specified)',
+	),
+	'sl' => array(
+		'language' => 'slovenščina',
+		'title' => 'Pretvorba del z Wikivira v TEI',
+		'main-heading-html' => 'Pretvorba del z <a href="http://'.hsc($settings['wiki-default-domain']).'/" target="_blank">Wikivira</a> v TEI',
+		'form-url-address-label' => 'URL-naslov besedila:',
+		'form-url-address-format' => 'Naslov naj bo oblike '.$settings['wiki-url-prefix'].'Naslov_dela.',
+		'form-submit-button' => 'Pretvori',
+		'form-reset-button' => 'Ponastavi',
+		'metadata-heading' => 'Metapodatki',
+		'metadata-description' => 'Vnos metapodatkov ni obvezen. Manjkajoče podatke bo pretvornik poskušal pridobiti iz metapodatkov na Wikiviru.',
+		'metadata-title-label' => 'Izvirni naslov:',
+		'metadata-title-normalised-label' => 'Normaliziran naslov:',
+		'metadata-author-label' => 'Avtor:',
+		'metadata-year-label' => 'Leto:',
+		'metadata-year-note' => '(več letnic ločite z vejicami)',
+		'metadata-publisher-label' => 'Založba:',
+		'metadata-translator-label' => 'Prevajalec:',
+		'metadata-signature-label' => 'Št. signature:',
+		'metadata-categories-label' => 'Kategorije:',
+		'metadata-categories-unspecified-option' => '(nedoločeno)',
+	),
+);
+
+$indexLanguage = (!empty($_GET['language'])?$_GET['language']:$settings['content-language']);
+if(!isset($indexTranslations[$indexLanguage])) {$indexLanguage = 'en';}
+
+$indexTranslation = $indexTranslations[$indexLanguage];
 ?>
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="sl">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?=hsc($indexLanguage)?>">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<title>Pretvorba del z Wikivira v TEI</title>
+<title><?=hsc($indexTranslation['title'])?></title>
 <style type="text/css">
-body {font: 82% Verdana, Arial, sans-serif;}
+body {margin: 15px; font: 82% Verdana, Arial, sans-serif;}
 th {text-align: left; padding: 4px 10px 4px 0px; vertical-align: top;}
 hr {height: 1px; border: none; background-color: gray;}
-form.pretvornik {margin-bottom: 40px;}
-.url-naslov {font-size: 115%; margin-bottom: 30px;}
-.url-naslov-label {margin-bottom: 5px;}
-.url-naslov input {font-size: 90%;}
-.opis {margin-top: 15px;}
+form.converter {margin-bottom: 40px;}
+.url-address {font-size: 115%; margin-bottom: 30px;}
+.url-address-label {margin-bottom: 5px;}
+.url-address input {font-size: 90%;}
+ul.languages {display: block; float: right; margin: 0px; padding: 0px;}
+ul.languages li {display: inline; margin: 0px; padding: 0px;}
+ul.languages li:before {content: ' | ';}
+ul.languages li:first-child:before {content: none;}
 </style>
 </head>
 <body>
 
-<h1>Pretvorba del z <a href="http://sl.wikisource.org/" target="_blank">Wikivira</a> v TEI</h1>
+<ul class="languages">
+	<?php foreach($indexTranslations as $indexTranslationLanguage => $indexTranslationStrings) { ?>
+	<li><a href="?language=<?=hsc($indexTranslationLanguage)?>"><?=($indexTranslationLanguage==$indexLanguage?'<b>':'').hsc($indexTranslationStrings['language']).($indexTranslationLanguage==$indexLanguage?'</b>':'')?></a></li>
+	<?php } ?>
+</ul>
 
-<form action="parse.php" method="post" class="pretvornik">
-<div class="url-naslov">
-	<div class="url-naslov-label"><b>URL-naslov besedila:</b></div>
-	<div><input type="text" name="url" size="60" /> <input type="submit" value="Pretvori" /> <input type="reset" value="Ponastavi" /></div>
-	<div><small>Naslov naj bo oblike <?=htmlspecialchars($settings['wiki-url-prefix'])?>Naslov_dela.</small></div>
+<h1><?=$indexTranslation['main-heading-html']?></h1>
+
+<form action="parse.php" method="post" class="converter">
+<div class="url-address">
+	<div class="url-address-label"><b><?=hsc($indexTranslation['form-url-address-label'])?></b></div>
+	<div><input type="text" name="url" size="60" /> <input type="submit" value="<?=hsc($indexTranslation['form-submit-button'])?>" /> <input type="reset" value="<?=hsc($indexTranslation['form-reset-button'])?>" /></div>
+	<div><small><?=hsc($indexTranslation['form-url-address-format'])?></small></div>
 </div>
 
-<p><b>Metapodatki</b><br />
-<small>Vnos metapodatkov ni obvezen. Manjkajoče podatke bo pretvornik poskušal pridobiti iz metapodatkov na Wikiviru.</small></p>
+<p><b><?=hsc($indexTranslation['metadata-heading'])?></b><br />
+<small><?=hsc($indexTranslation['metadata-description'])?></small></p>
 
 <table>
-	<tr><th>Izvirni naslov:</th><td><input type="text" name="title" size="40" /></td></tr>
-	<tr><th>Normaliziran naslov:</th><td><input type="text" name="title-normalised" size="40" /></td></tr>
-	<tr><th>Avtor:</th><td><input type="text" name="author" /></td></tr>
-	<tr><th>Leto:</th><td><input type="text" name="year" /> <small>(več letnic ločite z vejicami)</small<</td></tr>
-	<tr><th>Založba:</th><td><input type="text" name="publisher" /></td></tr>
-	<tr><th>Prevajalec:</th><td><input type="text" name="translator" /></td></tr>
-	<tr><th>Št. signature:</th><td><input type="text" name="id" size="5" /></td></tr>
+	<tr><th><?=hsc($indexTranslation['metadata-title-label'])?></th><td><input type="text" name="title" size="40" /></td></tr>
+	<tr><th><?=hsc($indexTranslation['metadata-title-normalised-label'])?></th><td><input type="text" name="title-normalised" size="40" /></td></tr>
+	<tr><th><?=hsc($indexTranslation['metadata-author-label'])?></th><td><input type="text" name="author" /></td></tr>
+	<tr><th><?=hsc($indexTranslation['metadata-year-label'])?></th><td><input type="text" name="year" /> <small><?=hsc($indexTranslation['metadata-year-note'])?></small></td></tr>
+	<tr><th><?=hsc($indexTranslation['metadata-publisher-label'])?></th><td><input type="text" name="publisher" /></td></tr>
+	<tr><th><?=hsc($indexTranslation['metadata-translator-label'])?></th><td><input type="text" name="translator" /></td></tr>
+	<tr><th><?=hsc($indexTranslation['metadata-signature-label'])?></th><td><input type="text" name="id" size="5" /></td></tr>
 	<tr>
-		<th>Kategorije:</th>
+		<th><?=hsc($indexTranslation['metadata-categories-label'])?></th>
 		<td>
 			<table>
 				<?php foreach($settings['taxonomy-categories'] as $workCategory) { ?>
 				<tr>
-					<td><?=htmlspecialchars(isset($workCategory['desc']['sl'])?$workCategory['desc']['sl']:$workCategory['id'])?>:</td>
+					<td><?=htmlspecialchars(isset($workCategory['desc'][$indexLanguage])?$workCategory['desc'][$indexLanguage]:$workCategory['id'])?>:</td>
 					<td>
 						<select name="categories[]">
-							<option value="">(nedoločeno)</option>
-							<?php form_printCategoriesElementOptions($workCategory['categories']); ?>
+							<option value=""><?=hsc($indexTranslation['metadata-categories-unspecified-option'])?></option>
+							<?php form_printCategoriesElementOptions($workCategory['categories'], $indexLanguage); ?>
 						</select>
 					</td>
 				</tr>

@@ -4,10 +4,8 @@ $settings = array();
 
 $settings['content-language'] = 'en';
 $settings['timezone'] = 'Europe/London';
-$settings['facsimile-url-prefix'] = '';
 $settings['wiki-default-domain'] = 'en.wikisource.org';
 $settings['wiki-url-prefix'] = 'http://*.wikisource.org/wiki/'; // use * for any combination of letters, numbers and hyphen
-$settings['relaxng-schema'] = false; // path to file; set to false to skip validation
 
 $settings['text-data-modules'] = array(
 	'FromURL',
@@ -31,7 +29,9 @@ $settings['notices-output'] = 'file'; // print | file | silent
 $settings['notices-filename'] = 'CONVERTLOG';
 $settings['notices-print-only-errors'] = true;
 
+$settings['facsimile-url-prefix'] = '';
 $settings['tei-enable-anchor-references'] = false;
+$settings['relaxng-schema'] = false; // path to file; set to false to skip validation
 
 
 // general metadata
@@ -87,7 +87,7 @@ include('settings.en.inc.php');
 
 
 // taxonomy
-$settings['taxonomy-categories'] = array( // key metadata-categories is array[] of array(string category_name, bool category_can_be_overwritten)
+$settings['taxonomy-categories'] = array( // value of key metadata-categories is array[] of array(string category_name, bool category_can_be_overwritten)
 	array(
 		'id' => 'Text.medium',
 		'desc' => array('sl' => 'prenosnik', 'en' => 'medium'),
