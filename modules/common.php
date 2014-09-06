@@ -82,7 +82,10 @@ function common_logNotice($message, $error=true, $append=true) {
 	global $settings;
 
 	if($settings['notices-output'] == 'file') {
-		file_put_contents($settings['notices-filename'], ($message !== ''?date('[Y-m-d H:i:s] '):'').$message.PHP_EOL, ($append?FILE_APPEND:null));
+		$filewrite = file_put_contents($settings['notices-filename'], ($message !== ''?date('[Y-m-d H:i:s] '):'').$message.PHP_EOL, ($append?FILE_APPEND:null));
+		if($filewrite === false) {
+			print 'Error occured while writing to log file.';
+		}
 	} elseif($settings['notices-output'] == 'silent') {
 	} elseif($error || !$settings['notices-print-only-errors']) {
 		print htmlspecialchars($message).'<br />'."\n";
