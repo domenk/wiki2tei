@@ -7,7 +7,7 @@ mb_internal_encoding('UTF-8');
 
 function common_error_handler($errno, $errstr, $errfile, $errline, $errcontext) {
 	common_logNotice('PHP error '.$errno.': '.$errstr.' in '.$errfile.' on line '.$errline, false);
-	return false;
+	return true;
 }
 set_error_handler('common_error_handler');
 
@@ -82,7 +82,7 @@ function common_logNotice($message, $error=true, $append=true) {
 	global $settings;
 
 	if($settings['notices-output'] == 'file') {
-		file_put_contents($settings['notices-filename'], $message.PHP_EOL, ($append?FILE_APPEND:null));
+		file_put_contents($settings['notices-filename'], ($message !== ''?date('[Y-m-d H:i:s] '):'').$message.PHP_EOL, ($append?FILE_APPEND:null));
 	} elseif($settings['notices-output'] == 'silent') {
 	} elseif($error || !$settings['notices-print-only-errors']) {
 		print htmlspecialchars($message).'<br />'."\n";

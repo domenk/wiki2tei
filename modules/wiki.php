@@ -16,7 +16,7 @@ class Wiki {
 	static public function getAuthorFullName($author) {
 		global $settings;
 
-		$file = @common_fetchPageFromWiki((!empty($settings['author-page-prefix'])?$settings['author-page-prefix']:'').$author);
+		$file = common_fetchPageFromWiki((!empty($settings['author-page-prefix'])?$settings['author-page-prefix']:'').$author);
 		if($file === false) {
 			return $author;
 		}

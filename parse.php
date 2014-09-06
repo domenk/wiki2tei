@@ -16,7 +16,7 @@ if(empty($selectedWork)) {
 }
 
 
-common_logNotice('Converting '.$selectedWork->getPrefix().' at '.date('r'), false);
+common_logNotice('Converting '.$selectedWork->getPrefix(), false);
 
 
 // get missing metadata from wikitext
@@ -1185,4 +1185,4 @@ if(!empty($selectedWorkData['dlib-urn'])) {
 	include('modules/getFacsimileFromDLib.inc.php');
 }
 
-common_logNotice('Conversion finished at '.date('r'), false);
+common_logNotice('Conversion finished', false);
