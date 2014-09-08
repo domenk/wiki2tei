@@ -31,6 +31,7 @@ $settings['notices-print-only-errors'] = true;
 
 $settings['facsimile-url-prefix'] = '';
 $settings['tei-enable-anchor-references'] = true;
+$settings['dtd-schema'] = false; // path to file; set to false to skip validation
 $settings['relaxng-schema'] = false; // path to file; set to false to skip validation
 
 

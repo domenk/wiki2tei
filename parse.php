@@ -1008,7 +1008,7 @@ for($i = 1; ($i < 100) && $changesWereMade; $i++) {
 	$pbDOMs = $DOM->getElementsByTagName('body')->item(0)->getElementsByTagName('pb'); // to exclude back//pb
 	foreach($pbDOMs as $pbDOM) {
 		Converter::trimDOMElement($pbDOM->parentNode, false);
-		
+
 		// remove lb if it is located after pb
 		if($pbDOM->nextSibling && ($pbDOM->nextSibling->nodeName == 'lb')) {
 			$pbDOM->parentNode->removeChild($pbDOM->nextSibling);
@@ -1162,6 +1162,15 @@ $DOM->preserveWhiteSpace = false;
 $DOM->loadXML($file);
 $DOM->formatOutput = true;
 $file = $DOM->saveXML();
+
+// validation
+if(!empty($settings['dtd-schema'])) {
+	if(file_exists($settings['dtd-schema'])) {
+		Converter::validateByDTD($DOM, $settings['dtd-schema']);
+	} else {
+		common_logNotice('DTD schema "'.$settings['relaxng-schema'].'" does not exist - validation skipped');
+	}
+}
 
 if(!empty($settings['relaxng-schema'])) {
 	if(file_exists($settings['relaxng-schema'])) {

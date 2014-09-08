@@ -190,11 +190,30 @@ class Converter {
 		return $removedElements;
 	}
 
+	static public function validateByDTD($DOM, $scheme) {
+		$DOMXML = $DOM->saveXML();
+		$DOMXML = preg_replace('/(<\?xml.*?\?>)/', '$1<!DOCTYPE TEI SYSTEM "'.htmlspecialchars($scheme).'">', $DOMXML);
+		$DOMforDTD = new DOMDocument();
+		$DOMforDTD->loadXML($DOMXML);
+		self::validateByMethod('DTD', $DOMforDTD, 'validate');
+	}
+
 	static public function validateByRelaxNG($DOM, $scheme) {
+		self::validateByMethod('RelaxNG', $DOM, 'relaxNGValidate', $scheme);
+	}
+
+	static protected function validateByMethod($methodName, $DOM, $method, $scheme=null) {
 		libxml_use_internal_errors(true);
-		$DOM->relaxNGValidate($scheme);
+
+		$validateMethod = array($DOM, $method);
+		if(!is_null($scheme)) {
+			$validateMethod($scheme);
+		} else {
+			$validateMethod();
+		}
+
 		foreach(libxml_get_errors() as $error) {
-			common_logNotice('Error RelaxNG'.($error->level==2?'':' level '.$error->level).': '.trim($error->message).' in line '.$error->line.' and column '.$error->column);
+			common_logNotice('Error '.$methodName.($error->level==2?'':' level '.$error->level).': '.trim($error->message).' in line '.$error->line.' and column '.$error->column);
 		}
 		libxml_clear_errors();
 		libxml_use_internal_errors(false);
