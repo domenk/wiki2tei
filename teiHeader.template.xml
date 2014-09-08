@@ -1,0 +1,60 @@
+<teiHeader>
+	<fileDesc>
+		<titleStmt>
+			<title wiki2tei-metadata="title-rich">Author: Title of work. (9999) [Wikisource]</title>
+			<principal></principal>
+		</titleStmt>
+		<editionStmt>
+			<edition>1.0</edition>
+		</editionStmt>
+		<publicationStmt>
+			<distributor>???</distributor>
+			<idno wiki2tei-metadata="idno"></idno>
+			<availability></availability>
+			<date wiki2tei-metadata="dategenerated">9999-99-99</date>
+		</publicationStmt>
+		<sourceDesc>
+			<bibl>
+				<title type="orig" wiki2tei-metadata="title-original" wiki2tei-language="">Title of work</title>
+				<title type="reg" wiki2tei-metadata="title-normalised" wiki2tei-language="">Title of work, normalised</title>
+				<author wiki2tei-metadata="author">Author</author>
+				<respStmt>
+					<name wiki2tei-metadata="translator"></name>
+				</respStmt>
+				<date wiki2tei-metadata="date">9999</date>
+				<publisher wiki2tei-metadata="publisher"></publisher>
+				<pubPlace>
+					<name wiki2tei-metadata="sitename">Wikisource</name>: <ref wiki2tei-metadata="ref" target="http://en.wikisource.org/wiki/Text.djvu">http://en.wikisource.org/wiki/Text.djvu</ref>
+				</pubPlace>
+			</bibl>
+		</sourceDesc>
+	</fileDesc>
+	<encodingDesc>
+		<projectDesc></projectDesc>
+		<appInfo>
+			<application version="0.1" ident="wiki2tei">
+				<label xml:lang="en">Converter from Wikisource MediaWiki format to TEI P5</label>
+				<p xml:lang="en">Converter for the <ref target="http://www.wikisource.org/">Wikisource library</ref> into <ref target="http://www.tei-c.org/">TEI P5</ref>.</p>
+				<p xml:lang="en">Source code can be found on <ref target="http://github.com/domenk/wiki2tei">Github</ref>.</p>
+			</application>
+		</appInfo>
+		<editorialDecl>
+			<p wiki2tei-metadata="note">Note</p>
+		</editorialDecl>
+		<tagsDecl>
+			<namespace name="http://www.tei-c.org/ns/1.0"></namespace>
+		</tagsDecl>
+		<classDecl>
+			<taxonomy xml:id="Text.taxonomy"></taxonomy>
+		</classDecl>
+	</encodingDesc>
+	<profileDesc>
+		<textClass></textClass>
+	</profileDesc>
+	<revisionDesc>
+		<change>
+			<date wiki2tei-metadata="dategenerated"></date>
+			<name>wiki2tei</name>: conversion to TEI P5.
+		</change>
+	</revisionDesc>
+</teiHeader>

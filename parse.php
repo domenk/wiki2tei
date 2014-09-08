@@ -385,70 +385,10 @@ $file = preg_replace('/___TEI_FACSIMILE_PAGE_(\d+)___/', '<pb page="$1" />', $fi
 
 // it should read: <TEI xmlns="http://www.tei-c.org/ns/1.0" xml:lang="en"> (this is solved below)
 $file = '<TEI xml:lang="'.$siteinfo['language'].'">
-	<teiHeader>
-		<fileDesc>
-			<titleStmt>
-				<title wiki2tei-metadata="title-rich">Author: Title of work. (9999) [Wikisource]</title>
-				<principal></principal>
-			</titleStmt>
-			<editionStmt>
-				<edition>1.0</edition>
-			</editionStmt>
-			<publicationStmt>
-				<distributor>???</distributor>
-				<idno wiki2tei-metadata="idno"></idno>
-        <availability></availability>
-				<date wiki2tei-metadata="dategenerated">9999-99-99</date>
-			</publicationStmt>
-			<sourceDesc>
-				<bibl>
-					<title xml:lang="'.$siteinfo['language'].'" type="orig" wiki2tei-metadata="title-original">Title of work</title>
-					<title xml:lang="'.$siteinfo['language'].'" type="reg" wiki2tei-metadata="title-normalised">Title of work, normalised</title>
-					<author wiki2tei-metadata="author">Author</author>
-					<respStmt>
-						<name wiki2tei-metadata="translator"></name>
-					</respStmt>
-					<date wiki2tei-metadata="date">9999</date>
-					<publisher wiki2tei-metadata="publisher"></publisher>
-					<pubPlace>
-						'.$siteinfo['sitename'].': <ref wiki2tei-metadata="ref" target="http://en.wikisource.org/wiki/Text.djvu">http://en.wikisource.org/wiki/Text.djvu</ref>
-					</pubPlace>
-				</bibl>
-			</sourceDesc>
-		</fileDesc>
-		<encodingDesc>
-			<projectDesc></projectDesc>
-			<appInfo>
-				<application version="0.1" ident="wiki2tei">
-					<label xml:lang="en">Converter from Wikisource MediaWiki format to TEI P5</label>
-					<p xml:lang="en">Converter for the <ref target="http://www.wikisource.org/">Wikisource library</ref> into <ref target="http://www.tei-c.org/">TEI P5</ref>.</p>
-					<p xml:lang="en">Source code can be found on <ref target="http://github.com/domenk/wiki2tei">Github</ref>.</p>
-				</application>
-			</appInfo>
-			<editorialDecl>
-				<p wiki2tei-metadata="note">Note</p>
-			</editorialDecl>
-			<tagsDecl>
-				<namespace name="http://www.tei-c.org/ns/1.0"></namespace>
-			</tagsDecl>
-			<classDecl>
-				<taxonomy xml:id="Text.taxonomy"></taxonomy>
-			</classDecl>
-		</encodingDesc>
-		<profileDesc>
-			<textClass></textClass>
-		</profileDesc>
-		<revisionDesc>
-			<change>
-				<date wiki2tei-metadata="dategenerated"></date>
-				<name>wiki2tei</name>: conversion to TEI P5.
-			</change>
-		</revisionDesc>
-	</teiHeader>
-	<facsimile>
-	</facsimile>
+	'.file_get_contents($settings['tei-teiHeader-template']).'
+	<facsimile />
 	<text>
-		<front xml:lang="'.$siteinfo['language'].'">
+		<front wiki2tei-language="">
 			<titlePage>
 				<titlePart type="reg" wiki2tei-metadata="title-normalised">Title of work</titlePart>
 				<docAuthor wiki2tei-metadata="author">Author</docAuthor>
@@ -462,7 +402,7 @@ $file = '<TEI xml:lang="'.$siteinfo['language'].'">
 			<divGen type="toc"/>
 		</front>
 		<body>
-'.$file.'
+			'.$file.'
 		</body>
 	</text>
 </TEI>';
@@ -888,6 +828,7 @@ $metadataManual = array(
 	'publisher' => $selectedWork->getPublisher(),
 	'note' => $selectedWork->getNote(),
 	'ref' => $settings['wiki-url-prefix'].$selectedWork->getLink(), // also @target
+	'sitename' => $siteinfo['sitename'],
 	'dategenerated' => date('Y-m-d'),
 );
 
@@ -929,6 +870,13 @@ for($i = $metadataElementsDOM->length-1; $i >= 0; $i--) {
 		}
 		$metadataElementDOM->appendChild($DOM->createTextNode($metadataValue));
 	}
+}
+
+$metadataElementsDOM = $DOMXPath->query('//*[@wiki2tei-language]');
+for($i = $metadataElementsDOM->length-1; $i >= 0; $i--) {
+	$metadataElementDOM = $metadataElementsDOM->item($i);
+	$metadataElementDOM->removeAttribute('wiki2tei-language');
+	$metadataElementDOM->setAttribute('xml:lang', $siteinfo['language']);
 }
 
 
