@@ -1164,7 +1164,11 @@ $DOM->formatOutput = true;
 $file = $DOM->saveXML();
 
 if(!empty($settings['relaxng-schema'])) {
-	Converter::validateByRelaxNG($DOM, $settings['relaxng-schema']);
+	if(file_exists($settings['relaxng-schema'])) {
+		Converter::validateByRelaxNG($DOM, $settings['relaxng-schema']);
+	} else {
+		common_logNotice('RelaxNG schema "'.$settings['relaxng-schema'].'" does not exist - validation skipped');
+	}
 }
 
 Converter::checkUnconvertedSyntax($file);

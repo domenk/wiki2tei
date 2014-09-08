@@ -129,7 +129,7 @@ class Wiki {
 		$entries = array();
 
 		$siteinfo = self::fetchSiteinfo();
-		$wikiExport = common_fetchContent('http://translatewiki.net/w/i.php?language='.urlencode($siteinfo['language']).'&module='.urlencode($module).'&export=true&title=Special%3AAdvancedTranslate', true);
+		$wikiExport = common_fetchContent('https://translatewiki.net/w/i.php?language='.urlencode($siteinfo['language']).'&module='.urlencode($module).'&export=true&title=Special%3AAdvancedTranslate', true);
 		preg_match('/\n\s*[\'"]?'.preg_quote($dataEntry).'[\'"]?\s*=&gt;\s*(.*?)\s*,\n/', $wikiExport, $matches);
 		if(!empty($matches[1])) {
 			if(preg_match('/array\s*\((.*)\)/', $matches[1], $matches2)) {

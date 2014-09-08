@@ -8,7 +8,7 @@ $settings['wiki-default-domain'] = 'en.wikisource.org';
 $settings['wiki-url-prefix'] = 'http://*.wikisource.org/wiki/'; // use * for any combination of letters, numbers and hyphen
 
 $settings['text-data-modules'] = array(
-	'FromURL',
+	// 'FromURL',
 	'FromForm',
 	// 'FromFile',
 );
@@ -23,7 +23,7 @@ $settings['facsimile-folder'] = 'facsimile';
 $settings['cache-folder'] = 'cache';
 
 $settings['cache-enabled'] = true;
-$settings['cache-max-age'] = 30*60; // in seconds
+$settings['cache-max-age'] = 2*60*60; // in seconds
 
 $settings['notices-output'] = 'file'; // print | file | silent
 $settings['notices-filename'] = 'CONVERTLOG';

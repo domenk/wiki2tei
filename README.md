@@ -6,7 +6,7 @@ Converter currently includes translations and metadata support for English and S
 
 Installation
 ============
-Converter requires PHP version 5.3 or higher with enabled mbstring and dom (libxml) extensions.
+Converter requires PHP version 5.3 or higher with enabled mbstring, dom (libxml) and openssl extensions.
 
 For basic installation you should create `cache` folder in the project's root and give PHP read and write rights to it.
 
