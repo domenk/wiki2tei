@@ -10,7 +10,7 @@ Converter requires PHP version 5.3 or higher with enabled mbstring, dom (libxml)
 
 For basic installation you should create `cache` folder in the project's root and give PHP read and write rights to it.
 
-If you enabled logging to file (`$settings['notices-output']`), you should create the file `CONVERTLOG` and make it PHP writable.
-The filename can be changed in `settings.additional.inc.php` using `$settings['notices-filename']`.
+Configuration defaults are located in `config.defaults.inc.php`. To change converter settings, create new file `config.inc.php` and copy variables you want to change to this file.
 
-Settings can be set in `settings.additional.inc.php`.
+If you enabled logging to file (`$settings['notices-output']`), you should create the file `convert.log` and make it PHP writable.
+The filename can be changed using `$settings['notices-filename']`.

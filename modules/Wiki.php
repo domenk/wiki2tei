@@ -74,9 +74,8 @@ class Wiki {
 				'sitename' => ($siteinfoElement&&$siteinfoElement->hasAttribute('sitename')?$siteinfoElement->getAttribute('sitename'):self::FALLBACK_SITENAME),
 				'language' => ($siteinfoElement&&$siteinfoElement->hasAttribute('lang')?$siteinfoElement->getAttribute('lang'):self::FALLBACK_LANGUAGE),
 			);
-			
-			global $settings;
-			$settingsFilename = 'settings.'.preg_replace('/[^A-Za-z_-]?/', '', self::$siteinfo[$wikiDomain]['language']).'.inc.php';
+
+			$settingsFilename = 'config.'.preg_replace('/[^A-Za-z_-]?/', '', self::$siteinfo[$wikiDomain]['language']).'.inc.php';
 			if(file_exists($settingsFilename)) {
 				include($settingsFilename);
 			}

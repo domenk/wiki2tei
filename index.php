@@ -1,5 +1,6 @@
 <?php
-include('settings.inc.php');
+
+include('config.defaults.inc.php');
 
 function form_printCategoriesElementOptions($categories, $language) {
 	foreach($categories as $category) {

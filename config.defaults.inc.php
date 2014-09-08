@@ -26,7 +26,7 @@ $settings['cache-enabled'] = true;
 $settings['cache-max-age'] = 2*60*60; // in seconds
 
 $settings['notices-output'] = 'file'; // print | file | silent
-$settings['notices-filename'] = 'CONVERTLOG';
+$settings['notices-filename'] = 'convert.log';
 $settings['notices-print-only-errors'] = true;
 
 $settings['facsimile-url-prefix'] = '';
@@ -89,7 +89,7 @@ $settings['templates-to-remove'] = array(); // template names or template name p
 $settings['metadata-templates'] = array();
 
 
-include('settings.en.inc.php');
+include('config.en.inc.php');
 
 
 // taxonomy
@@ -184,6 +184,6 @@ $settings['taxonomy-categories'] = array( // value of key metadata-categories is
 	),
 );
 
-if(file_exists('settings.additional.inc.php')) {
-	require('settings.additional.inc.php');
+if(file_exists('config.inc.php')) {
+	require('config.inc.php');
 }

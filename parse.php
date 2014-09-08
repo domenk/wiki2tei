@@ -1,6 +1,6 @@
 <?php
 
-require('settings.inc.php');
+require('config.defaults.inc.php');
 require('modules/common.php');
 
 common_logNotice('', false);
