@@ -25,10 +25,14 @@ require('modules/getMetadataFromWikitext.inc.php');
 $siteinfo = Wiki::fetchSiteinfo();
 
 
-Converter::addReplacePair('/{{\s*'.Wiki::getTemplateNamePattern($settings['unclear-template']).'\s*}}/sU', '<gap reason="illegible" />');
-Converter::addReplacePair('/{{\s*'.Wiki::getTemplateNamePattern($settings['unclear-template']).'\s*\|([^\|]*)}}/sU', '<unclear>$1</unclear>');
-Converter::addReplacePair('/{{\s*'.Wiki::getTemplateNamePattern($settings['unclear-template']).'\s*\|([^\|]*)\|([^\|]*)}}/sU', '<choice><unclear>$1</unclear><corr>$2</corr></choice>');
-Converter::addReplacePair('/{{\s*'.Wiki::getTemplateNamePattern($settings['redaction-template']).'\s*\|([^\|]*)\|([^\|]*)}}/sU', '<choice><sic>$1</sic><corr>$2</corr></choice>');
+if(!empty($settings['unclear-template'])) {
+	Converter::addReplacePair('/{{\s*'.Wiki::getTemplateNamePattern($settings['unclear-template']).'\s*}}/sU', '<gap reason="illegible" />');
+	Converter::addReplacePair('/{{\s*'.Wiki::getTemplateNamePattern($settings['unclear-template']).'\s*\|([^\|]*)}}/sU', '<unclear>$1</unclear>');
+	Converter::addReplacePair('/{{\s*'.Wiki::getTemplateNamePattern($settings['unclear-template']).'\s*\|([^\|]*)\|([^\|]*)}}/sU', '<choice><unclear>$1</unclear><corr>$2</corr></choice>');
+}
+if(!empty($settings['redaction-template'])) {
+	Converter::addReplacePair('/{{\s*'.Wiki::getTemplateNamePattern($settings['redaction-template']).'\s*\|([^\|]*)\|([^\|]*)}}/sU', '<choice><sic>$1</sic><corr>$2</corr></choice>');
+}
 
 // mark page breaks
 if(!empty($settings['pagebreak-template'])) {

@@ -16,8 +16,8 @@ if(!empty($_POST['url'])) {
 		exit('Empty page in URL.');
 	}
 
+	Wiki::setDomain(parse_url($url, PHP_URL_HOST));
 	$settings['wiki-url-prefix'] = $matches[1];
-	$settings['wiki-domain'] = parse_url($url, PHP_URL_HOST);
 
 	$selectedWork = new Work(99999);
 	$selectedWork->setLink($matches[2]);

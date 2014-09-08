@@ -13,6 +13,42 @@ class Wiki {
 		return (isset($settings['wiki-domain'])?$settings['wiki-domain']:$settings['wiki-default-domain']);
 	}
 
+	static public function setDomain($wikiDomain) {
+		global $settings;
+
+		$settings['wiki-domain'] = $wikiDomain;
+
+		if(!isset(self::$siteinfo[$wikiDomain])) {
+			$siteinfoXML = common_fetchContentFromWiki('api.php?action=query&meta=siteinfo&siprop=general&format=xml', true);
+			if($siteinfoXML !== false) {
+				try {
+					$DOM = new DOMDocument();
+					$DOM->loadXML($siteinfoXML);
+					$siteinfoElement = $DOM->getElementsByTagName('general')->item(0);
+				} catch(DOMException $e) {
+					$siteinfoElement = false;
+				}
+			} else {
+				$siteinfoElement = false;
+			}
+
+			self::$siteinfo[$wikiDomain] = array(
+				'sitename' => ($siteinfoElement&&$siteinfoElement->hasAttribute('sitename')?$siteinfoElement->getAttribute('sitename'):self::FALLBACK_SITENAME),
+				'language' => ($siteinfoElement&&$siteinfoElement->hasAttribute('lang')?$siteinfoElement->getAttribute('lang'):self::FALLBACK_LANGUAGE),
+			);
+		}
+
+		$settingsFilename = 'config.'.preg_replace('/[^A-Za-z_-]?/', '', self::$siteinfo[$wikiDomain]['language']).'.inc.php';
+		if(file_exists($settingsFilename)) {
+			include($settingsFilename);
+		}
+	}
+
+	static public function fetchSiteinfo() {
+		$wikiDomain = self::getDomain();
+		return self::$siteinfo[$wikiDomain];
+	}
+
 	static public function getAuthorFullName($author) {
 		global $settings;
 
@@ -51,37 +87,6 @@ class Wiki {
 		}
 
 		return $categories;
-	}
-
-	static public function fetchSiteinfo() {
-		$wikiDomain = self::getDomain();
-
-		if(!isset(self::$siteinfo[$wikiDomain])) {
-			$siteinfoXML = common_fetchContentFromWiki('api.php?action=query&meta=siteinfo&siprop=general&format=xml', true);
-			if($siteinfoXML !== false) {
-				try {
-					$DOM = new DOMDocument();
-					$DOM->loadXML($siteinfoXML);
-					$siteinfoElement = $DOM->getElementsByTagName('general')->item(0);
-				} catch(DOMException $e) {
-					$siteinfoElement = false;
-				}
-			} else {
-				$siteinfoElement = false;
-			}
-
-			self::$siteinfo[$wikiDomain] = array(
-				'sitename' => ($siteinfoElement&&$siteinfoElement->hasAttribute('sitename')?$siteinfoElement->getAttribute('sitename'):self::FALLBACK_SITENAME),
-				'language' => ($siteinfoElement&&$siteinfoElement->hasAttribute('lang')?$siteinfoElement->getAttribute('lang'):self::FALLBACK_LANGUAGE),
-			);
-
-			$settingsFilename = 'config.'.preg_replace('/[^A-Za-z_-]?/', '', self::$siteinfo[$wikiDomain]['language']).'.inc.php';
-			if(file_exists($settingsFilename)) {
-				include($settingsFilename);
-			}
-		}
-
-		return self::$siteinfo[$wikiDomain];
 	}
 
 	static public function getRedirectMagicWords() {
