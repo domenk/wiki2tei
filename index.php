@@ -23,7 +23,7 @@ $indexTranslations = array(
 	'en' => array(
 		'language' => 'English',
 		'title' => 'Conversion of texts from Wikisource to TEI',
-		'main-heading-html' => 'Conversion of texts from <a href="http://'.hsc($settings['wiki-default-domain']).'/" target="_blank">Wikisource</a> to TEI',
+		'main-heading-html' => 'Conversion of texts from <a href="http://en.wikisource.org/" target="_blank">Wikisource</a> to TEI',
 		'form-url-address-label' => 'URL address of text:',
 		'form-url-address-format' => 'Address should be of the following form: '.$settings['wiki-url-prefix'].'Text_title.',
 		'form-submit-button' => 'Convert',
@@ -44,7 +44,7 @@ $indexTranslations = array(
 	'sl' => array(
 		'language' => 'slovenščina',
 		'title' => 'Pretvorba del z Wikivira v TEI',
-		'main-heading-html' => 'Pretvorba del z <a href="http://'.hsc($settings['wiki-default-domain']).'/" target="_blank">Wikivira</a> v TEI',
+		'main-heading-html' => 'Pretvorba del z <a href="http://sl.wikisource.org/" target="_blank">Wikivira</a> v TEI',
 		'form-url-address-label' => 'URL-naslov besedila:',
 		'form-url-address-format' => 'Naslov naj bo oblike '.$settings['wiki-url-prefix'].'Naslov_dela.',
 		'form-submit-button' => 'Pretvori',
