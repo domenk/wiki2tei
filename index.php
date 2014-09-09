@@ -40,6 +40,8 @@ $indexTranslations = array(
 		'metadata-signature-label' => 'Signature:',
 		'metadata-categories-label' => 'Categories:',
 		'metadata-categories-unspecified-option' => '(not specified)',
+		'footer' => 'Converter <i>wiki2tei</i> can be found on',
+		'footer-github' => 'GitHub',
 	),
 	'sl' => array(
 		'language' => 'slovenščina',
@@ -61,6 +63,8 @@ $indexTranslations = array(
 		'metadata-signature-label' => 'Signatura:',
 		'metadata-categories-label' => 'Kategorije:',
 		'metadata-categories-unspecified-option' => '(nedoločeno)',
+		'footer' => 'Pretvornik <i>wiki2tei</i> lahko najdete na',
+		'footer-github' => 'GitHubu',
 	),
 );
 
@@ -77,6 +81,8 @@ $indexTranslation = $indexTranslations[$indexLanguage];
 <style type="text/css">
 body {margin: 15px; font: 82% Verdana, Arial, sans-serif;}
 th {padding: 4px 10px 4px 0px; vertical-align: top; text-align: left;}
+form {margin-bottom: 50px;}
+hr {height: 1px; border: none; background: gray;}
 .url-address {font-size: 115%; margin-bottom: 30px;}
 .url-address-label {margin-bottom: 5px;}
 .url-address input {font-size: 90%;}
@@ -134,6 +140,9 @@ ul.languages li:first-child:before {content: none;}
 	</tr>
 </table>
 </form>
+
+<hr />
+<p><?=$indexTranslation['footer']?> <a href="https://github.com/domenk/wiki2tei" target="_blank"><?=hsc($indexTranslation['footer-github'])?></a>.</p>
 
 </body>
 </html>
