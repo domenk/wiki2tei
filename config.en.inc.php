@@ -1,6 +1,7 @@
 <?php
 
 $settings['content-language'] = 'en';
+$settings['wiki-default-domain'] = 'en.wikisource.org';
 
 $settings['metadata']['facsimiles-heading'] = 'Facsimile';
 

@@ -1,6 +1,7 @@
 <?php
 
 $settings['content-language'] = 'sl';
+$settings['wiki-default-domain'] = 'sl.wikisource.org';
 
 $settings['metadata']['availability']['sl'] = 'Besedilo je na razpolago pod dovoljenjem [http://creativecommons.org/licenses/by-sa/4.0/ Creative Commons Priznanje avtorstva-Deljenje pod enakimi pogoji 4.0 mednarodna licenca].';
 $settings['metadata']['translation-translator']['sl'] = 'Prevajalec';
