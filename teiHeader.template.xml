@@ -5,7 +5,7 @@
 			<principal></principal>
 		</titleStmt>
 		<editionStmt>
-			<edition>1.0</edition>
+			<edition>0.1</edition>
 		</editionStmt>
 		<publicationStmt>
 			<distributor>???</distributor>
@@ -32,7 +32,7 @@
 	<encodingDesc>
 		<projectDesc></projectDesc>
 		<appInfo>
-			<application version="0.1" ident="wiki2tei">
+			<application version="1.0" ident="wiki2tei">
 				<label xml:lang="en">Converter from Wikisource MediaWiki format to TEI P5</label>
 				<p xml:lang="en">Converter for the <ref target="http://www.wikisource.org/">Wikisource library</ref> into <ref target="http://www.tei-c.org/">TEI P5</ref>.</p>
 				<p xml:lang="en">Source code can be found on <ref target="http://github.com/domenk/wiki2tei">Github</ref>.</p>
