@@ -23,7 +23,7 @@ if(!empty($_POST['url'])) {
 	$selectedWork->setLink($matches[2]);
 
 
-	$metadataFormFields = array('id', 'title', 'title-normalised', 'author', 'year', 'publisher', 'translator');
+	$metadataFormFields = array('id', 'title', 'title-normalised', 'author', 'year', 'publisher', 'translator', 'signatureprefix');
 	foreach($metadataFormFields as $metadataFormField) {
 		if(isset($_POST[$metadataFormField]) && (trim($_POST[$metadataFormField]) !== '')) {
 			$metadataFormFieldValue = trim($_POST[$metadataFormField]);
@@ -40,6 +40,7 @@ if(!empty($_POST['url'])) {
 				case 'year': $selectedWork->addYears($metadataFormFieldValue); break;
 				case 'publisher': $selectedWork->setPublisher($metadataFormFieldValue); break;
 				case 'translator': $selectedWork->setTranslator($metadataFormFieldValue); break;
+				case 'signatureprefix': $selectedWork->setSignaturePrefix($metadataFormFieldValue); break;
 			}
 		}
 	}

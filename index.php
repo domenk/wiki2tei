@@ -58,7 +58,7 @@ $indexTranslations = array(
 		'metadata-year-note' => '(več letnic ločite z vejicami)',
 		'metadata-publisher-label' => 'Založba:',
 		'metadata-translator-label' => 'Prevajalec:',
-		'metadata-signature-label' => 'Št. signature:',
+		'metadata-signature-label' => 'Signatura:',
 		'metadata-categories-label' => 'Kategorije:',
 		'metadata-categories-unspecified-option' => '(nedoločeno)',
 	),
@@ -113,7 +113,7 @@ ul.languages li:first-child:before {content: none;}
 	<tr><th><?=hsc($indexTranslation['metadata-year-label'])?></th><td><input type="text" name="year" /> <small><?=hsc($indexTranslation['metadata-year-note'])?></small></td></tr>
 	<tr><th><?=hsc($indexTranslation['metadata-publisher-label'])?></th><td><input type="text" name="publisher" /></td></tr>
 	<tr><th><?=hsc($indexTranslation['metadata-translator-label'])?></th><td><input type="text" name="translator" /></td></tr>
-	<tr><th><?=hsc($indexTranslation['metadata-signature-label'])?></th><td><input type="text" name="id" size="5" /></td></tr>
+	<tr><th><?=hsc($indexTranslation['metadata-signature-label'])?></th><td><input type="text" name="signatureprefix" size="10" /></td></tr>
 	<tr>
 		<th><?=hsc($indexTranslation['metadata-categories-label'])?></th>
 		<td>

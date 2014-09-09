@@ -85,6 +85,11 @@ class Work {
 		$this->prefix = sprintf($settings['metadata']['signature-prefix'], $this->id);
 	}
 
+	public function setSignaturePrefix($prefix) {
+		$this->id = trim($prefix);
+		$this->prefix = trim($prefix);
+	}
+
 	public function setTitle($title) {
 		$this->title = trim($title);
 	}
@@ -100,7 +105,7 @@ class Work {
 	public function addYears($year) {
 		$this->years = $this->mergeArrays($this->years, $year);
 	}
-	
+
 	public function addCategory($category, $parentCategory=0, $forceReplace=true) {
 		if(!$forceReplace && !empty($parentCategory) && isset($this->categories[$parentCategory])) {return;}
 		$this->categories = $this->mergeArrays($this->categories, array($parentCategory => $category));
