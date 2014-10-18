@@ -14,3 +14,7 @@ Configuration defaults are located in `config.defaults.inc.php`. To change conve
 
 If you enabled logging to file (`$settings['notices-output']`), you should create the file `convert.log` and make it PHP writable.
 The filename can be changed using `$settings['notices-filename']`.
+
+Limitations
+===========
+Converter cannot convert djvu files or pages that transclude djvu pages using `<pages>` element.
