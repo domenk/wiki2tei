@@ -76,7 +76,7 @@ Converter::addReplacePair('/\'\'(.*)$/mU', '___TEI_ITALIC_NEW______$1___TEI_ITAL
 
 $file = Converter::normaliseWikiText($file);
 
-$file = preg_replace_callback('/<\s*nowiki.*?>(.*?)<\/nowiki\s*>/si', function($matches) {return '<nowiki>'.base64_encode($matches[1]).'</nowiki>';}, $file);
+$file = preg_replace_callback('/<\s*nowiki.*?>(.*?)<\/nowiki\s*>/si', function($matches) {return '<nowiki>'.rawurlencode($matches[1]).'</nowiki>';}, $file);
 $file = preg_replace('/\[\[\s*('.implode('|', array_map('preg_quote', Wiki::getCategoryNamespaces())).'):(.*)\]\]/Ui', '', $file);
 
 // some manual checks
@@ -802,7 +802,7 @@ foreach($PDOMs as $PDOM) {
 $PDOMs = $DOM->getElementsByTagName('nowiki');
 while($PDOMs->length > 0) {
 	$PDOM = $PDOMs->item(0);
-	$PDOM->parentNode->replaceChild($DOM->createTextNode(base64_decode($PDOM->firstChild->nodeValue)), $PDOM);
+	$PDOM->parentNode->replaceChild($DOM->createTextNode(rawurldecode($PDOM->firstChild->nodeValue)), $PDOM);
 }
 
 
