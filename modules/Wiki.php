@@ -19,27 +19,60 @@ class Wiki {
 		$settings['wiki-domain'] = $wikiDomain;
 
 		if(!isset(self::$siteinfo[$wikiDomain])) {
-			$siteinfoXML = common_fetchContentFromWiki('api.php?action=query&meta=siteinfo&siprop=general&format=xml', true);
+			self::$siteinfo[$wikiDomain]['sitename'] = self::FALLBACK_SITENAME;
+			self::$siteinfo[$wikiDomain]['language'] = self::FALLBACK_LANGUAGE;
+
+			$siteinfoXML = common_fetchContentFromWiki('api.php?action=query&meta=siteinfo&siprop=general|namespacealiases|namespaces|magicwords&format=xml', true);
+
 			if($siteinfoXML !== false) {
 				try {
+
 					$DOM = new DOMDocument();
 					$DOM->loadXML($siteinfoXML);
-					$siteinfoElement = $DOM->getElementsByTagName('general')->item(0);
-				} catch(DOMException $e) {
-					$siteinfoElement = false;
-				}
-			} else {
-				$siteinfoElement = false;
-			}
+					$DOMXPath = new DOMXPath($DOM);
 
-			self::$siteinfo[$wikiDomain] = array(
-				'sitename' => ($siteinfoElement&&$siteinfoElement->hasAttribute('sitename')?$siteinfoElement->getAttribute('sitename'):self::FALLBACK_SITENAME),
-				'language' => ($siteinfoElement&&$siteinfoElement->hasAttribute('lang')?$siteinfoElement->getAttribute('lang'):self::FALLBACK_LANGUAGE),
-			);
+					// general
+					$generalDOM = $DOMXPath->query('query/general')->item(0);
+					if($generalDOM->hasAttribute('sitename')) {
+						self::$siteinfo[$wikiDomain]['sitename'] = $generalDOM->getAttribute('sitename');
+					}
+					if($generalDOM->hasAttribute('lang')) {
+						self::$siteinfo[$wikiDomain]['language'] = $generalDOM->getAttribute('lang');
+					}
+
+					// redirect magic words
+					$redirectMagicWords = array();
+					$redirectMagicWordsDOMs = $DOMXPath->query('query/magicwords/magicword[@name="redirect"]//alias');
+					foreach($redirectMagicWordsDOMs as $redirectMagicWordsDOM) {
+						$redirectMagicWords[] = $redirectMagicWordsDOM->textContent;
+					}
+					self::$redirectMagicWords[$wikiDomain] = array_unique($redirectMagicWords);
+
+					// all namespaces
+					$namespaces = array();
+					$namespaceDOMs = $DOMXPath->query('query/namespaces/ns');
+					foreach($namespaceDOMs as $namespaceDOM) {
+						if($namespaceDOM->hasAttribute('canonical')) {
+							$namespaces[$namespaceDOM->getAttribute('id')][] = $namespaceDOM->getAttribute('canonical');
+						}
+						$namespaces[$namespaceDOM->getAttribute('id')][] = $namespaceDOM->textContent;
+					}
+
+					$namespaceAliasDOMs = $DOMXPath->query('query/namespacealiases/ns');
+					foreach($namespaceAliasDOMs as $namespaceAliasDOM) {
+						$namespaces[$namespaceAliasDOM->getAttribute('id')][] = $namespaceAliasDOM->textContent;
+					}
+
+					// specific namespaces
+					self::$categoryNamespaces[$wikiDomain] = array_unique($namespaces[14]);
+					self::$imageNamespaces[$wikiDomain] = array_unique($namespaces[6]);
+
+				} catch(DOMException $e) {}
+			}
 		}
 
 		$settingsFilename = 'config.'.preg_replace('/[^A-Za-z_-]?/', '', self::$siteinfo[$wikiDomain]['language']).'.inc.php';
-		if(file_exists($settingsFilename)) {
+		if(file_exists($settingsFilename) && (self::$siteinfo[$wikiDomain]['language'] != $settings['content-language'])) { // check if file exists and do not include file if it is already included
 			include($settingsFilename);
 		}
 	}
@@ -90,36 +123,15 @@ class Wiki {
 	}
 
 	static public function getRedirectMagicWords() {
-		$wikiDomain = self::getDomain();
-
-		if(!isset(self::$redirectMagicWords[$wikiDomain])) {
-			$entries = array_merge(array('#REDIRECT'), self::getAdvancedTranslateData('words', 'redirect'));
-			self::$redirectMagicWords[$wikiDomain] = array_unique($entries);
-		}
-
-		return self::$redirectMagicWords[$wikiDomain];
+		return self::$redirectMagicWords[self::getDomain()];
 	}
 
 	static public function getCategoryNamespaces() {
-		$wikiDomain = self::getDomain();
-
-		if(!isset(self::$categoryNamespaces[$wikiDomain])) {
-			$entries = array_merge(array('Category'), self::getAdvancedTranslateData('namespace', 'NS_CATEGORY'));
-			self::$categoryNamespaces[$wikiDomain] = array_unique($entries);
-		}
-
-		return self::$categoryNamespaces[$wikiDomain];
+		return self::$categoryNamespaces[self::getDomain()];
 	}
 
 	static public function getImageNamespaces() {
-		$wikiDomain = self::getDomain();
-
-		if(!isset(self::$imageNamespaces[$wikiDomain])) {
-			$entries = array_merge(array('Image', 'File'), self::getAdvancedTranslateData('namespace', 'NS_FILE'), self::getAdvancedTranslateData('namespace', 'NS_MEDIA'));
-			self::$imageNamespaces[$wikiDomain] = array_unique($entries);
-		}
-
-		return self::$imageNamespaces[$wikiDomain];
+		return self::$imageNamespaces[self::getDomain()];
 	}
 
 	static public function getTemplateNamePattern($templateName) {
@@ -127,27 +139,5 @@ class Wiki {
 		$templateNameFirstLetter = mb_substr($templateName, 0, 1);
 		$templateNamePattern = '['.mb_strtoupper($templateNameFirstLetter).$templateNameFirstLetter.']'.str_replace(' ', '[ _]', preg_quote(str_replace('_', ' ', mb_substr($templateName, 1))));
 		return $templateNamePattern;
-	}
-
-	static protected function getAdvancedTranslateData($module, $dataEntry) {
-		$entries = array();
-
-		$siteinfo = self::fetchSiteinfo();
-		$wikiExport = common_fetchContent('https://translatewiki.net/w/i.php?language='.urlencode($siteinfo['language']).'&module='.urlencode($module).'&export=true&title=Special%3AAdvancedTranslate', true);
-		preg_match('/\n\s*[\'"]?'.preg_quote($dataEntry).'[\'"]?\s*=&gt;\s*(.*?)\s*,\n/', $wikiExport, $matches);
-		if(!empty($matches[1])) {
-			if(preg_match('/array\s*\((.*)\)/', $matches[1], $matches2)) {
-				$entriesRaw = explode(',', $matches2[1]);
-				unset($entriesRaw[0]);
-			} else {
-				$entriesRaw = array($matches[1]);
-			}
-
-			foreach($entriesRaw as $entryRaw) {
-				$entries[] = trim($entryRaw, '\'" ');
-			}
-		}
-
-		return array_unique($entries);
 	}
 }
